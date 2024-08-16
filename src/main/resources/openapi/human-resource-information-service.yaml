@@ -1,0 +1,608 @@
+openapi: 3.0.3
+info:
+  title: Human resource information service API
+  version: 1.0.0
+  description: |-
+    The service that stores employee information, performance reviews, and organization structure.  
+
+servers:
+  - url: http://localhost:8080/api/v1/hris
+    description: Local environment
+
+tags:
+  - name: employees
+    description: Endpoints responsible for the employees management and viewing
+  - name: organization
+    description: Endpoints responsible for the viewing of the organization structure
+  - name: performance-reviews
+    description: Endpoints responsible for the performance review management and viewing
+
+paths:
+  /employees:
+    post:
+      tags:
+        - employees
+      description: Create a new employee
+      operationId: createEmployee
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEmployeeRequest'
+      responses:
+        '201':
+          description: Employee created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateEmployeeResponse'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /employees/{id}:
+    patch:
+      tags:
+        - employees
+      description: Update employee information by id. Name, surname and email cannot be updated
+      operationId: patchEmployee
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Employee id in uuid format
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchEmployeeRequest'
+      responses:
+        '200':
+          description: Employee updated
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Employee not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    get:
+      tags:
+        - employees
+      description: Get employee details by id.
+      operationId: getEmployee
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Employee id in uuid format
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Employee details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetEmployeeResponse'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Employee not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+        - employees
+      description: Delete the employee by id
+      operationId: deleteEmployee
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Employee id in uuid format
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Employee deleted
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Employee not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /organization/org-chart/all:
+    get:
+      tags:
+        - organization
+      description: Get the whole organization view
+      operationId: getAllOrganization
+      responses:
+        '200':
+          description: Organization org chart
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetEmployeeResponse'
+        '500':
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /organization/org-chart:
+    get:
+      tags:
+        - organization
+      description: Get organization sub view for the given employee
+      operationId: getOrganizationSubView
+      parameters:
+        - name: employeeId
+          in: query
+          required: true
+          description: Employee id in uuid format
+          schema:
+            type: string
+            format: uuid
+        - name: expand
+          in: query
+          required: false
+          description: Expand the current hierarchy to the top/bottom
+          schema:
+            type: string
+            enum: [ top, bottom, none ]
+            default: none
+      responses:
+        '200':
+          description: Organization org chart sub view
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetEmployeeResponse'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Employee not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /performance-reviews/{employeeId}/assigned:
+    get:
+      tags:
+        - performance-reviews
+      description: Get current assigned performance reviews employee needs to fill and submit
+      operationId: getAssignedPerformanceReviews
+      parameters:
+        - name: employeeId
+          in: path
+          required: true
+          description: Employee id in uuid format
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Opened performance reviews assigned to the employee
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetAssignedPerformanceReviewsResponse'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Employee not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /performance-reviews/{employeeId}/submit:
+    put:
+      tags:
+        - performance-reviews
+      description: Create or update performance review for the reviewed employee
+      parameters:
+        - name: employeeId
+          in: path
+          required: true
+          description: Employee id in uuid format
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEmployeeRequest'
+      responses:
+        '200':
+          description: Performance review was submitted
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Employee not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /performance-reviews/{employeeId}:
+    get:
+      tags:
+        - performance-reviews
+      description: Get the performance review history for the employee
+      parameters:
+        - name: employeeId
+          in: path
+          required: true
+          description: Employee id in uuid format
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          required: false
+          description: Number of performance reviews to return within one request
+          schema:
+            type: integer
+            default: 20
+        - name: offset
+          in: query
+          required: false
+          description: Position of performance review to start selection with
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Performance review was submitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PerformanceReviewHistoryResponse'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Employee not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+
+    CreateEmployeeRequest:
+      type: object
+      required:
+        - name
+        - surname
+        - email
+        - position
+      properties:
+        name:
+          type: string
+          minimum: 1
+          maximum: 50
+          example: Frodo
+        surname:
+          type: string
+          minimum: 1
+          maximum: 50
+          example: Baggins
+        email:
+          type: string
+          format: email
+          minimum: 15
+          maximum: 60
+          example: frodo.baggins@mycompany.org
+        position:
+          type: string
+          minimum: 3
+          maximum: 50
+          example: software engineer
+        supervisor:
+          type: string
+          format: uuid
+          example: 27a7d6e6-4270-41eb-862c-6be9a843a16a
+        subordinates:
+          type: array
+          items:
+            type: string
+            format: uuid
+          example: [ 27a7d6e6-4270-41eb-862c-6be9a843a16a, 27a7d6e6-4270-41eb-862c-6be9a843a16a, 27a7d6e6-4270-41eb-862c-6be9a843a16a ]
+
+    CreateEmployeeResponse:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 27a7d6e6-4270-41eb-862c-6be9a843a16a
+
+    PatchEmployeeRequest:
+      type: object
+      required:
+        - id
+      properties:
+        position:
+          type: string
+          minimum: 3
+          maximum: 50
+          example: software engineer
+        supervisor:
+          type: string
+          format: uuid
+          example: 27a7d6e6-4270-41eb-862c-6be9a843a16a
+        subordinates:
+          type: array
+          items:
+            type: string
+            format: uuid
+          example: [ 27a7d6e6-4270-41eb-862c-6be9a843a16a, 27a7d6e6-4270-41eb-862c-6be9a843a16a, 27a7d6e6-4270-41eb-862c-6be9a843a16a ]
+
+    GetEmployeeResponse:
+      type: object
+      required:
+        - name
+        - surname
+        - email
+        - position
+      properties:
+        name:
+          type: string
+          minimum: 1
+          maximum: 50
+          example: Frodo
+        surname:
+          type: string
+          minimum: 1
+          maximum: 50
+          example: Baggins
+        email:
+          type: string
+          format: email
+          minimum: 15
+          maximum: 60
+          example: frodo.baggins@mycompany.org
+        position:
+          type: string
+          minimum: 3
+          maximum: 50
+          example: software engineer
+        supervisor:
+          type: string
+          format: uuid
+          example: 27a7d6e6-4270-41eb-862c-6be9a843a16a
+        subordinates:
+          type: array
+          items:
+            type: string
+            format: uuid
+          example: [ 27a7d6e6-4270-41eb-862c-6be9a843a16a, 27a7d6e6-4270-41eb-862c-6be9a843a16a, 27a7d6e6-4270-41eb-862c-6be9a843a16a ]
+
+    OrganizationResponse:
+      type: object
+      required:
+        - orgChart
+      properties:
+        orgChart:
+          type: array
+          items:
+            $ref: '#/components/schemas/Employee'
+
+    Employee:
+      type: object
+      required:
+        - id
+        - name
+        - surname
+        - position
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: 27a7d6e6-4270-41eb-862c-6be9a843a16a
+        name:
+          type: string
+          minimum: 1
+          maximum: 50
+          example: Frodo
+        surname:
+          type: string
+          minimum: 1
+          maximum: 50
+          example: Baggins
+        position:
+          type: string
+          minimum: 3
+          maximum: 50
+          example: software engineer
+        subordinates:
+          type: array
+          items:
+            $ref: '#/components/schemas/Employee'
+
+    GetAssignedPerformanceReviewsResponse:
+      type: object
+      required:
+        - employeeIds
+      properties:
+        employeeIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          example: [ 27a7d6e6-4270-41eb-862c-6be9a843a16a, 27a7d6e6-4270-41eb-862c-6be9a843a16a, 27a7d6e6-4270-41eb-862c-6be9a843a16a ]
+
+    SubmitPerformanceReviewRequest:
+      type: object
+      required:
+        - reviewerId
+        - performance
+        - softSkills
+        - independence
+        - aspirationForGrowth
+      properties:
+        reviewerId:
+          type: string
+          format: uuid
+          example: 27a7d6e6-4270-41eb-862c-6be9a843a16a
+        performance:
+          $ref: '#/components/schemas/ReviewCriterion'
+        softSkills:
+          $ref: '#/components/schemas/ReviewCriterion'
+        independence:
+          $ref: '#/components/schemas/ReviewCriterion'
+        aspirationForGrowth:
+          $ref: '#/components/schemas/ReviewCriterion'
+
+    PerformanceReviewHistoryResponse:
+      type: object
+      required:
+        - reviews
+      properties:
+        reviews:
+          type: array
+          items:
+            $ref: '#/components/schemas/PerformanceReview'
+
+    PerformanceReview:
+      type: object
+      required:
+        - performance
+        - softSkills
+        - independence
+        - aspirationForGrowth
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        performance:
+          $ref: '#/components/schemas/ReviewCriterion'
+        softSkills:
+          $ref: '#/components/schemas/ReviewCriterion'
+        independence:
+          $ref: '#/components/schemas/ReviewCriterion'
+        aspirationForGrowth:
+          $ref: '#/components/schemas/ReviewCriterion'
+        createdAt:
+          type: string
+          format: date
+
+    ReviewCriterion:
+      type: object
+      required:
+        - score
+      properties:
+        score:
+          type: integer
+          minimum: 1
+          maximum: 10
+        comment:
+          type: string
+          maximum: 2000
+
+    ErrorResponse:
+      type: object
+      properties:
+        errorMessage:
+          type: string
+          example: Internal error
