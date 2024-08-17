@@ -1,6 +1,7 @@
 plugins {
     kotlin("jvm") version "2.0.10"
     id("org.jlleitschuh.gradle.ktlint") version "12.1.1"
+    id("org.jetbrains.kotlinx.kover") version "0.8.3"
     id("io.ktor.plugin") version "2.3.12"
 }
 
@@ -37,7 +38,24 @@ dependencies {
 
 tasks.test {
     useJUnitPlatform()
+    finalizedBy(tasks.koverXmlReport)
 }
+
+kover {
+    reports {
+        filters {
+            excludes {
+                classes("MainKt")
+            }
+        }
+        verify {
+            rule {
+                minBound(60)
+            }
+        }
+    }
+}
+
 kotlin {
     jvmToolchain(21)
 }
