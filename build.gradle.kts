@@ -12,6 +12,12 @@ repositories {
     mavenCentral()
 }
 
+application {
+    mainClass = "org.mycompany.hris.MainKt"
+}
+
+val exposedVersion = "0.53.0"
+val flywayVersion = "10.17.1"
 dependencies {
     // ktor
     implementation("io.ktor:ktor-server-core-jvm")
@@ -25,6 +31,14 @@ dependencies {
     // metrics
     implementation("io.ktor:ktor-server-metrics-micrometer")
     implementation("io.micrometer:micrometer-registry-prometheus:1.13.3")
+
+    // DB
+    implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
+    implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
+    implementation("org.jetbrains.exposed:exposed-migration:$exposedVersion")
+    implementation("org.flywaydb:flyway-core:$flywayVersion")
+    runtimeOnly("org.flywaydb:flyway-database-postgresql:$flywayVersion")
+    implementation("org.postgresql:postgresql:42.7.3")
 
     // di
     implementation("org.kodein.di:kodein-di-framework-ktor-server-jvm:7.22.0")
@@ -58,4 +72,21 @@ kover {
 
 kotlin {
     jvmToolchain(21)
+}
+
+val postgresUrl = "jdbc:postgresql://localhost:5442/human_resource_information"
+val postgresUser = "postgres"
+val postgresPassword = "postgres"
+
+tasks.register<JavaExec>("generateMigrationScripts") {
+    environment(
+        "POSTGRES_MIGRATE" to true,
+        "POSTGRES_URL" to postgresUrl,
+        "POSTGRES_USER" to postgresUser,
+        "POSTGRES_PASSWORD" to postgresPassword
+    )
+    group = "application"
+    description = "Generate migration scripts in the path exposed-migration/migrations"
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass = "org/mycompany/GenerateMigrationScriptsKt"
 }

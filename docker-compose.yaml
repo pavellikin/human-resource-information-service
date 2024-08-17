@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:16.4
+    container_name: hris_postgres
+    environment:
+      - POSTGRES_DB=human_resource_information
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5442:5432"
+    healthcheck:
+      test: [ 'CMD-SHELL', "pg_isready -U postgres" ]
+      interval: 1s
+      timeout: 3s
+      retries: 10
