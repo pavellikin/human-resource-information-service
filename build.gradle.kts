@@ -1,3 +1,13 @@
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.api.tasks.testing.logging.TestLogEvent
+import org.testcontainers.containers.PostgreSQLContainer
+
+buildscript {
+    dependencies {
+        classpath("org.testcontainers:postgresql:1.20.1")
+    }
+}
+
 plugins {
     kotlin("jvm") version "2.0.10"
     id("org.jlleitschuh.gradle.ktlint") version "12.1.1"
@@ -22,6 +32,8 @@ dependencies {
     // ktor
     implementation("io.ktor:ktor-server-core-jvm")
     implementation("io.ktor:ktor-server-netty")
+    implementation("io.ktor:ktor-server-content-negotiation")
+    implementation("io.ktor:ktor-serialization-jackson")
     implementation("io.ktor:ktor-server-cors")
     implementation("io.ktor:ktor-server-default-headers")
     implementation("io.ktor:ktor-server-call-logging")
@@ -35,10 +47,12 @@ dependencies {
     // DB
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
+    implementation("org.jetbrains.exposed:exposed-java-time:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-migration:$exposedVersion")
     implementation("org.flywaydb:flyway-core:$flywayVersion")
     runtimeOnly("org.flywaydb:flyway-database-postgresql:$flywayVersion")
     implementation("org.postgresql:postgresql:42.7.3")
+    implementation("com.zaxxer:HikariCP:5.1.0")
 
     // di
     implementation("org.kodein.di:kodein-di-framework-ktor-server-jvm:7.22.0")
@@ -46,12 +60,26 @@ dependencies {
     // logs
     implementation("ch.qos.logback:logback-classic:1.5.7")
 
+    // test
     testImplementation(kotlin("test"))
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testImplementation("io.ktor:ktor-server-test-host")
+    testImplementation("io.ktor:ktor-client-content-negotiation")
+    testImplementation("io.ktor:ktor-client-logging")
+    testImplementation("org.testcontainers:postgresql:1.20.1")
 }
 
 tasks.test {
     useJUnitPlatform()
+
+    testLogging {
+        events(TestLogEvent.PASSED, TestLogEvent.FAILED, TestLogEvent.SKIPPED)
+        exceptionFormat = TestExceptionFormat.FULL
+        showExceptions = true
+        showCauses = true
+        showStackTraces = true
+    }
+
     finalizedBy(tasks.koverXmlReport)
 }
 
@@ -59,7 +87,7 @@ kover {
     reports {
         filters {
             excludes {
-                classes("MainKt")
+                classes("org/mycompany/hris/MainKt")
             }
         }
         verify {
@@ -74,19 +102,26 @@ kotlin {
     jvmToolchain(21)
 }
 
-val postgresUrl = "jdbc:postgresql://localhost:5442/human_resource_information"
-val postgresUser = "postgres"
-val postgresPassword = "postgres"
+val postgresContainer: PostgreSQLContainer<*> =
+    PostgreSQLContainer("postgres:16.4")
+        .withDatabaseName("human_resource_information")
+        .withUsername("postgres")
+        .withPassword("postgres")
 
 tasks.register<JavaExec>("generateMigrationScripts") {
+    if (!postgresContainer.isRunning()) {
+        postgresContainer.start()
+    }
+
     environment(
         "POSTGRES_MIGRATE" to true,
-        "POSTGRES_URL" to postgresUrl,
-        "POSTGRES_USER" to postgresUser,
-        "POSTGRES_PASSWORD" to postgresPassword
+        "POSTGRES_URL" to postgresContainer.getJdbcUrl(),
+        "POSTGRES_USER" to postgresContainer.username,
+        "POSTGRES_PASSWORD" to postgresContainer.password,
     )
     group = "application"
     description = "Generate migration scripts in the path exposed-migration/migrations"
     classpath = sourceSets.main.get().runtimeClasspath
-    mainClass = "org/mycompany/GenerateMigrationScriptsKt"
+    mainClass = "org/mycompany/hris/GenerateMigrationScriptsKt"
+    doLast { postgresContainer.stop() }
 }

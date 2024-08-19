@@ -17,21 +17,22 @@ fun main() {
     if (System.getenv("POSTGRES_MIGRATE")?.toBoolean() == false) {
         return
     }
-    val db = Database.connect(
-        url = System.getenv("POSTGRES_URL"),
-        user = System.getenv("POSTGRES_USER"),
-        password = System.getenv("POSTGRES_PASSWORD"),
-        driver = "org.postgresql.Driver"
-    )
+    val db =
+        Database.connect(
+            url = System.getenv("POSTGRES_URL"),
+            user = System.getenv("POSTGRES_USER"),
+            password = System.getenv("POSTGRES_PASSWORD"),
+            driver = "org.postgresql.Driver",
+        )
     transaction(db) {
         generateEmployeesTable()
     }
 }
 
-fun generateEmployeesTable() = MigrationUtils.generateMigrationScript(
-    EmployeesTable,
-    scriptDirectory = MIGRATIONS_DIRECTORY,
-    scriptName = "V1__employees_table",
-    withLogs = true
-)
-
+fun generateEmployeesTable() =
+    MigrationUtils.generateMigrationScript(
+        EmployeesTable,
+        scriptDirectory = MIGRATIONS_DIRECTORY,
+        scriptName = "V1__employees_table",
+        withLogs = true,
+    )

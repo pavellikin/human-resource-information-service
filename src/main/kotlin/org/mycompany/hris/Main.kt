@@ -14,8 +14,3 @@ fun Application.module() {
     configureServer()
     configureRoutes()
 }
-
-
-
-
-

@@ -49,20 +49,18 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /employees/{id}:
+  /employees/{employeeId}:
     patch:
       tags:
         - employees
       description: Update employee information by id. Name, surname and email cannot be updated
       operationId: patchEmployee
       parameters:
-        - name: id
+        - name: employeeId
           in: path
           required: true
-          description: Employee id in uuid format
           schema:
-            type: string
-            format: uuid
+           $ref: "#/components/schemas/EmployeeId"
       requestBody:
         content:
           application/json:
@@ -95,13 +93,11 @@ paths:
       description: Get employee details by id.
       operationId: getEmployee
       parameters:
-        - name: id
+        - name: employeeId
           in: path
           required: true
-          description: Employee id in uuid format
           schema:
-            type: string
-            format: uuid
+            $ref: "#/components/schemas/EmployeeId"
       responses:
         '200':
           description: Employee details
@@ -133,13 +129,11 @@ paths:
       description: Delete the employee by id
       operationId: deleteEmployee
       parameters:
-        - name: id
+        - name: employeeId
           in: path
           required: true
-          description: Employee id in uuid format
           schema:
-            type: string
-            format: uuid
+            $ref: "#/components/schemas/EmployeeId"
       responses:
         '200':
           description: Employee deleted
@@ -174,7 +168,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GetEmployeeResponse'
+                $ref: '#/components/schemas/OrganizationResponse'
         '500':
           description: Internal error
           content:
@@ -192,10 +186,8 @@ paths:
         - name: employeeId
           in: query
           required: true
-          description: Employee id in uuid format
           schema:
-            type: string
-            format: uuid
+            $ref: "#/components/schemas/EmployeeId"
         - name: expand
           in: query
           required: false
@@ -210,7 +202,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GetEmployeeResponse'
+                $ref: '#/components/schemas/OrganizationResponse'
         '400':
           description: Invalid input
           content:
@@ -240,10 +232,8 @@ paths:
         - name: employeeId
           in: path
           required: true
-          description: Employee id in uuid format
           schema:
-            type: string
-            format: uuid
+            $ref: "#/components/schemas/EmployeeId"
       responses:
         '200':
           description: Opened performance reviews assigned to the employee
@@ -279,10 +269,8 @@ paths:
         - name: employeeId
           in: path
           required: true
-          description: Employee id in uuid format
           schema:
-            type: string
-            format: uuid
+            $ref: "#/components/schemas/EmployeeId"
       requestBody:
         content:
           application/json:
@@ -319,10 +307,8 @@ paths:
         - name: employeeId
           in: path
           required: true
-          description: Employee id in uuid format
           schema:
-            type: string
-            format: uuid
+            $ref: "#/components/schemas/EmployeeId"
         - name: limit
           in: query
           required: false
@@ -375,15 +361,9 @@ components:
         - position
       properties:
         name:
-          type: string
-          minimum: 1
-          maximum: 50
-          example: Frodo
+          $ref: "#/components/schemas/Name"
         surname:
-          type: string
-          minimum: 1
-          maximum: 50
-          example: Baggins
+          $ref: "#/components/schemas/Surname"
         email:
           type: string
           format: email
@@ -391,75 +371,51 @@ components:
           maximum: 60
           example: frodo.baggins@mycompany.org
         position:
-          type: string
-          minimum: 3
-          maximum: 50
-          example: software engineer
+          $ref: "#/components/schemas/Position"
         supervisor:
-          type: string
-          format: uuid
-          example: 27a7d6e6-4270-41eb-862c-6be9a843a16a
+          $ref: "#/components/schemas/EmployeeId"
         subordinates:
           type: array
           items:
-            type: string
-            format: uuid
+            $ref: "#/components/schemas/EmployeeId"
           example: [ 27a7d6e6-4270-41eb-862c-6be9a843a16a, 27a7d6e6-4270-41eb-862c-6be9a843a16a, 27a7d6e6-4270-41eb-862c-6be9a843a16a ]
 
     CreateEmployeeResponse:
       type: object
       required:
-        - id
+        - employeeId
       properties:
-        id:
-          type: string
-          format: uuid
-          example: 27a7d6e6-4270-41eb-862c-6be9a843a16a
+        employeeId:
+          $ref: "#/components/schemas/EmployeeId"
 
     PatchEmployeeRequest:
       type: object
-      required:
-        - id
       properties:
         position:
-          type: string
-          minimum: 3
-          maximum: 50
-          example: software engineer
+          $ref: "#/components/schemas/Position"
         supervisor:
-          type: string
-          format: uuid
-          example: 27a7d6e6-4270-41eb-862c-6be9a843a16a
+          $ref: "#/components/schemas/EmployeeId"
         subordinates:
           type: array
           items:
-            type: string
-            format: uuid
+            $ref: "#/components/schemas/EmployeeId"
           example: [ 27a7d6e6-4270-41eb-862c-6be9a843a16a, 27a7d6e6-4270-41eb-862c-6be9a843a16a, 27a7d6e6-4270-41eb-862c-6be9a843a16a ]
 
     GetEmployeeResponse:
       type: object
       required:
-        - id
+        - employeeId
         - name
         - surname
         - email
         - position
       properties:
-        id:
-          type: string
-          format: uuid
-          example: 27a7d6e6-4270-41eb-862c-6be9a843a16a
+        employeeId:
+          $ref: "#/components/schemas/EmployeeId"
         name:
-          type: string
-          minimum: 1
-          maximum: 50
-          example: Frodo
+          $ref: "#/components/schemas/Name"
         surname:
-          type: string
-          minimum: 1
-          maximum: 50
-          example: Baggins
+          $ref: "#/components/schemas/Surname"
         email:
           type: string
           format: email
@@ -467,19 +423,13 @@ components:
           maximum: 60
           example: frodo.baggins@mycompany.org
         position:
-          type: string
-          minimum: 3
-          maximum: 50
-          example: software engineer
+          $ref: "#/components/schemas/Position"
         supervisor:
-          type: string
-          format: uuid
-          example: 27a7d6e6-4270-41eb-862c-6be9a843a16a
+          $ref: "#/components/schemas/EmployeeId"
         subordinates:
           type: array
           items:
-            type: string
-            format: uuid
+            $ref: "#/components/schemas/EmployeeId"
           example: [ 27a7d6e6-4270-41eb-862c-6be9a843a16a, 27a7d6e6-4270-41eb-862c-6be9a843a16a, 27a7d6e6-4270-41eb-862c-6be9a843a16a ]
 
     OrganizationResponse:
@@ -495,30 +445,19 @@ components:
     Employee:
       type: object
       required:
-        - id
+        - employeeId
         - name
         - surname
         - position
       properties:
-        id:
-          type: string
-          format: uuid
-          example: 27a7d6e6-4270-41eb-862c-6be9a843a16a
+        employeeId:
+          $ref: "#/components/schemas/EmployeeId"
         name:
-          type: string
-          minimum: 1
-          maximum: 50
-          example: Frodo
+          $ref: "#/components/schemas/Name"
         surname:
-          type: string
-          minimum: 1
-          maximum: 50
-          example: Baggins
+          $ref: "#/components/schemas/Surname"
         position:
-          type: string
-          minimum: 3
-          maximum: 50
-          example: software engineer
+          $ref: "#/components/schemas/Position"
         subordinates:
           type: array
           items:
@@ -532,8 +471,7 @@ components:
         employeeIds:
           type: array
           items:
-            type: string
-            format: uuid
+            $ref: "#/components/schemas/EmployeeId"
           example: [ 27a7d6e6-4270-41eb-862c-6be9a843a16a, 27a7d6e6-4270-41eb-862c-6be9a843a16a, 27a7d6e6-4270-41eb-862c-6be9a843a16a ]
 
     SubmitPerformanceReviewRequest:
@@ -605,8 +543,33 @@ components:
           type: string
           maximum: 2000
 
+    EmployeeId:
+      description: Employee id in uuid format
+      type: string
+      format: uuid
+      example: 27a7d6e6-4270-41eb-862c-6be9a843a16a
+
+    Name:
+      type: string
+      minimum: 1
+      maximum: 50
+      example: Frodo
+
+    Surname:
+      type: string
+      minimum: 1
+      maximum: 50
+      example: Baggins
+
+    Position:
+      description: Employee position in the organization
+      type: string
+      enum: [ CEO, CTO, CPO, SoftwareEngineer, EngineeringManager, ProductManager ]
+
     ErrorResponse:
       type: object
+      required:
+        - errorMessage
       properties:
         errorMessage:
           type: string
