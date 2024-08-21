@@ -20,10 +20,15 @@ import org.mycompany.hris.employee.EmployeeService
 import org.mycompany.hris.employee.model.CreateEmployeeRequest
 import org.mycompany.hris.employee.model.PatchEmployeeRequest
 import org.mycompany.hris.model.EmployeeId
-import org.mycompany.hris.utils.extractMandatoryParameter
+import org.mycompany.hris.orgchart.OrgChartService
+import org.mycompany.hris.orgchart.model.Expand
+import org.mycompany.hris.utils.extractMandatoryPathParameter
+import org.mycompany.hris.utils.extractMandatoryQueryParameter
+import org.mycompany.hris.utils.extractQueryParameter
 import org.mycompany.hris.utils.withErrorHandling
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.slf4j.MDC
 
 val apiLogger: Logger = LoggerFactory.getLogger("router")
 
@@ -31,6 +36,7 @@ fun Application.configureRoutes() {
     routing {
         route("/api/v1/hris") {
             employeesRoutes()
+            orgChartRoutes()
         }
         operationalRoutes()
     }
@@ -47,7 +53,7 @@ private fun Route.employeesRoutes() {
     }
     patch("/employees/{employeeId}") {
         withErrorHandling {
-            val employeeId = extractMandatoryParameter("employeeId").let(EmployeeId::fromString)
+            val employeeId = extractMandatoryPathParameter("employeeId").let(EmployeeId::fromString)
             val body = call.receive(PatchEmployeeRequest::class)
             employeeService.updateEmployee(employeeId, body)
             call.respond(HttpStatusCode.OK)
@@ -55,15 +61,40 @@ private fun Route.employeesRoutes() {
     }
     get("/employees/{employeeId}") {
         withErrorHandling {
-            val employeeId = extractMandatoryParameter("employeeId").let(EmployeeId::fromString)
+            val employeeId = extractMandatoryPathParameter("employeeId").let(EmployeeId::fromString)
             val response = employeeService.getEmployee(employeeId)
             call.respond(HttpStatusCode.OK, response)
         }
     }
     delete("/employees/{employeeId}") {
-        val employeeId = extractMandatoryParameter("employeeId").let(EmployeeId::fromString)
+        val employeeId = extractMandatoryPathParameter("employeeId").let(EmployeeId::fromString)
         employeeService.deleteEmployee(employeeId)
         call.respond(HttpStatusCode.OK)
+    }
+}
+
+private fun Route.orgChartRoutes() {
+    val orgChartService by closestDI().instance<OrgChartService>()
+    get("/organization/org-chart/all") {
+        withErrorHandling {
+            val response = orgChartService.getAllOrgChart()
+            call.respond(HttpStatusCode.OK, response)
+        }
+    }
+    get("/organization/org-chart") {
+        withErrorHandling {
+            val employeeId = extractMandatoryQueryParameter("employeeId").let(EmployeeId::fromString)
+            val expand = extractQueryParameter("expand")?.let(Expand::fromString) ?: Expand.None
+            val step = extractQueryParameter("step")?.toInt() ?: 0
+            MDC.getCopyOfContextMap().putAll(
+                mapOf(
+                    "employeeId" to employeeId.toString(),
+                    "expand" to expand.name,
+                ),
+            )
+            val response = orgChartService.getEmployeeOrgChart(employeeId, expand, step)
+            call.respond(HttpStatusCode.OK, response)
+        }
     }
 }
 

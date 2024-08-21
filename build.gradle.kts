@@ -28,6 +28,7 @@ application {
 
 val exposedVersion = "0.53.0"
 val flywayVersion = "10.17.1"
+val testContainersVersion = "1.20.1"
 dependencies {
     // ktor
     implementation("io.ktor:ktor-server-core-jvm")
@@ -59,6 +60,10 @@ dependencies {
 
     // logs
     implementation("ch.qos.logback:logback-classic:1.5.7")
+    implementation("net.logstash.logback:logstash-logback-encoder:8.0")
+
+    // cache
+    implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")
 
     // test
     testImplementation(kotlin("test"))
@@ -66,7 +71,8 @@ dependencies {
     testImplementation("io.ktor:ktor-server-test-host")
     testImplementation("io.ktor:ktor-client-content-negotiation")
     testImplementation("io.ktor:ktor-client-logging")
-    testImplementation("org.testcontainers:postgresql:1.20.1")
+    testImplementation("org.testcontainers:testcontainers:$testContainersVersion")
+    testImplementation("org.testcontainers:postgresql:$testContainersVersion")
 }
 
 tasks.test {

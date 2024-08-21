@@ -194,8 +194,15 @@ paths:
           description: Expand the current hierarchy to the top/bottom
           schema:
             type: string
-            enum: [ top, bottom, none ]
+            enum: [ Top, Bottom, None ]
             default: none
+        - name: step
+          in: query
+          required: false
+          description: Expand the current hierarchy on the number of layers
+          schema:
+            type: integer
+            default: 0
       responses:
         '200':
           description: Organization org chart sub view
@@ -434,13 +441,9 @@ components:
 
     OrganizationResponse:
       type: object
-      required:
-        - orgChart
-      properties:
-        orgChart:
-          type: array
-          items:
-            $ref: '#/components/schemas/Employee'
+      additionalProperties:
+        description: Employee detail
+        $ref: '#/components/schemas/Employee'
 
     Employee:
       type: object

@@ -2,7 +2,6 @@ package org.mycompany.hris.configuration.tables
 
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.javatime.date
-import java.time.Instant
 import java.time.LocalDate
 import java.util.UUID
 

@@ -45,7 +45,7 @@ class EmployeeServiceTest : AbstractE2eTest() {
 
             assertEquals(HttpStatusCode.Created, response.status)
             newSuspendedTransaction {
-               val employeeId = response.body<CreateEmployeeResponse>().employeeId.value
+                val employeeId = response.body<CreateEmployeeResponse>().employeeId.value
                 with(EmployeesTable) {
                     selectAll().where(id eq employeeId).toList().also { dbEmployees ->
                         assertEquals(1, dbEmployees.size)
