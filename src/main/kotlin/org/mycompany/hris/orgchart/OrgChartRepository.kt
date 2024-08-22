@@ -27,22 +27,4 @@ class OrgChartRepository {
                     }
             }
         }
-
-    suspend fun getFor(employeeIds: List<EmployeeId>) =
-        withContext(Dispatchers.IO) {
-            with(EmployeesTable) {
-                select(id, name, surname, position, supervisor, subordinates)
-                    .where(id inList employeeIds.map { it.value })
-                    .map { statement ->
-                        OrgChartEmployee(
-                            employeeId = EmployeeId(statement[id]),
-                            name = Name(statement[name]),
-                            surname = Surname(statement[surname]),
-                            position = Position.valueOf(statement[position]),
-                            supervisor = statement[supervisor]?.let { EmployeeId(it) },
-                            subordinates = statement[subordinates]?.let { s -> s.map { EmployeeId(it) } },
-                        )
-                    }
-            }
-        }
 }

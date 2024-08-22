@@ -24,11 +24,11 @@ class OrgChartService(
 
     // Heavy operation.
     // Let's assume the median name length is 10 symbols and median surname length is 20. Every employee has 1 supervisor and 5 subordinates.
-    // The row size without email will be 16 + 10 + 20 + 40 + 16 + (16 * 5) = 182 bytes.
-    // For a medium size organization of ~1000 employees the amount of data to extract will be 182 * 1000 = 178 Kb.
-    // For a large organization of ~10 000 employees the data to extract will be ~2 Mb.
-    // To reduce IO we can afford cashing of 2 Mb of in the pod memory.
-    // For scalability this cache can be moved to a distributed cache (Redis).
+    // The row size without email will be 16 + 10 + 20 + 40 + 16 + (16 * 5) = 182 bytes. Let's use 200 bytes for simplicity.
+    // For a medium size organization of ~1000 employees the amount of data to extract will be 200 * 1000 = 200 Kb.
+    // For a large organization of 2 million employees (Walmart) the data to extract will be ~400 Mb.
+    // To reduce IO we can afford cashing of org structure in memory for small organization.
+    // For big organizations this cache should be moved to a distributed cache (Redis) or replaced with SQL queries.
     suspend fun getAllOrgChart(): Map<EmployeeId, OrgChartEmployee> {
         return cache.asMap().getOrPut(Unit) { internalGetAllOrgChart() }
     }
@@ -51,7 +51,12 @@ class OrgChartService(
                 while (supervisor != null && counter < step) {
                     orgChart[supervisor]?.let {
                         supervisor = it.supervisor
-                        supervisor?.let { s -> orgChart[s]?.let { oce -> deque.add(oce) } }
+                        supervisor?.let { s ->
+                            orgChart[s]?.let { oce ->
+                                deque.add(oce)
+                                oce.subordinates?.forEach { s -> orgChart[s]?.let { oce -> deque.add(oce) } }
+                            }
+                        }
                     }
                     counter++
                 }
