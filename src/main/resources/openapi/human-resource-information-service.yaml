@@ -332,11 +332,7 @@ components:
         surname:
           $ref: "#/components/schemas/Surname"
         email:
-          type: string
-          format: email
-          minimum: 15
-          maximum: 60
-          example: frodo.baggins@mycompany.org
+          $ref: "#/components/schemas/Email"
         position:
           $ref: "#/components/schemas/Position"
         supervisor:
@@ -384,11 +380,7 @@ components:
         surname:
           $ref: "#/components/schemas/Surname"
         email:
-          type: string
-          format: email
-          minimum: 15
-          maximum: 60
-          example: frodo.baggins@mycompany.org
+          $ref: "#/components/schemas/Email"
         position:
           $ref: "#/components/schemas/Position"
         supervisor:
@@ -523,6 +515,13 @@ components:
       minimum: 1
       maximum: 50
       example: Baggins
+
+    Email:
+      type: string
+      format: email
+      minimum: 15
+      maximum: 60
+      example: frodo.baggins@mycompany.org
 
     Position:
       description: Employee position in the organization

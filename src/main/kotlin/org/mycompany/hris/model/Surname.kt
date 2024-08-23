@@ -2,6 +2,7 @@ package org.mycompany.hris.model
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonValue
+import org.mycompany.hris.exception.BadRequestException
 
 data class Surname
     @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
@@ -9,6 +10,10 @@ data class Surname
         @JsonValue val value: String,
     ) {
         init {
-            assert(value.length <= 50)
+            val minValue = 1
+            val maxValue = 50
+            if (value.length < minValue || value.length > maxValue) {
+                throw BadRequestException("Surname size should be between $minValue and $maxValue symbols")
+            }
         }
     }
