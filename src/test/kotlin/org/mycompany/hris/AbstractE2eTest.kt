@@ -58,6 +58,7 @@ abstract class AbstractE2eTest {
                                 "datasource.url" to postgresContainer.getJdbcUrl(),
                                 "datasource.username" to postgresContainer.username,
                                 "datasource.password" to postgresContainer.password,
+                                "flyway.enabled" to "true",
                                 "datasource.maximumPoolSize" to "1",
                                 "logging.root" to "TRACE",
                             ),

@@ -2,7 +2,6 @@ package org.mycompany.hris.configuration
 
 import io.ktor.server.application.Application
 import org.flywaydb.core.Flyway
-import org.mycompany.hris.MIGRATIONS_DIRECTORY
 
 fun Application.configureFlyway() {
     // The idea here to separate main and DB migration pods.
@@ -19,7 +18,7 @@ fun Application.configureFlyway() {
     val password = dbConfig.property("password").getString()
     Flyway.configure()
         .dataSource(url, username, password)
-        .locations("filesystem:$MIGRATIONS_DIRECTORY")
+        .locations("classpath:db/migrations")
         .baselineOnMigrate(true)
         .load()
         .migrate()

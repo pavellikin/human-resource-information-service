@@ -1,13 +1,35 @@
 services:
+  web:
+    build: .
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      flyway:
+        condition: service_completed_successfully
+    environment:
+      - JDBC_URL=jdbc:postgresql://postgres:5432/human_resource_information
+  flyway:
+    image: flyway/flyway:10.17.2
+    volumes:
+      - ./src/main/resources/db/migrations:/flyway/sql
+    environment:
+      - FLYWAY_URL=jdbc:postgresql://postgres:5432/human_resource_information
+      - FLYWAY_USER=postgres
+      - FLYWAY_PASSWORD=postgres
+    command: migrate
   postgres:
     image: postgres:16.4
     container_name: hris_postgres
+    volumes:
+      - ./tmp/db:/var/lib/postgresql/data
     environment:
       - POSTGRES_DB=human_resource_information
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
     ports:
-      - "5442:5432"
+      - "5432:5432"
     healthcheck:
       test: [ 'CMD-SHELL', "pg_isready -U postgres" ]
       interval: 1s
