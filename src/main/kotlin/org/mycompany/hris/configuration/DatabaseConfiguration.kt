@@ -19,6 +19,7 @@ fun Application.configureDatabase(prometheusMeterRegistry: MeterRegistry): Datab
             connectionTimeout = dbConfig.property("connectionTimeout").getString().toLong()
         }
     val dataSource = HikariDataSource(hikariConfig)
+    Runtime.getRuntime().addShutdownHook(Thread { dataSource.close() })
     return Database.connect(
         datasource = dataSource,
     )

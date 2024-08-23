@@ -34,4 +34,6 @@ class EmployeeService(
     suspend fun deleteEmployee(employeeId: EmployeeId) {
         inTx { employeeRepository.deleteEmployeeById(employeeId) }
     }
+
+    internal suspend fun isEmployeeExist(employeeId: EmployeeId) = employeeRepository.isEmployeeExist(employeeId)
 }

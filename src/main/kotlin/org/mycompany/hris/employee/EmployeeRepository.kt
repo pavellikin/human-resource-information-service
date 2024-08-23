@@ -3,6 +3,7 @@ package org.mycompany.hris.employee
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.count
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
@@ -70,5 +71,12 @@ class EmployeeRepository {
     suspend fun deleteEmployeeById(employeeId: EmployeeId) =
         withContext(Dispatchers.IO) {
             EmployeesTable.deleteWhere { id eq employeeId.value }
+        }
+
+    suspend fun isEmployeeExist(employeeId: EmployeeId) =
+        withContext(Dispatchers.IO) {
+            with(EmployeesTable) {
+                select(id.count()).where { id eq employeeId.value }.count() > 0
+            }
         }
 }

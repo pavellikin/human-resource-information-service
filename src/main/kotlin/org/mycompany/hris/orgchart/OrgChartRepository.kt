@@ -2,7 +2,6 @@ package org.mycompany.hris.orgchart
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
 import org.mycompany.hris.configuration.tables.EmployeesTable
 import org.mycompany.hris.model.EmployeeId
 import org.mycompany.hris.model.Name

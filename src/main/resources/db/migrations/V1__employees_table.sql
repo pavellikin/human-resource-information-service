@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS employees (
+CREATE TABLE employees (
     id uuid PRIMARY KEY,
     "name" VARCHAR(60) NOT NULL,
     surname VARCHAR(60) NOT NULL,

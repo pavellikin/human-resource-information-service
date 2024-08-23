@@ -11,6 +11,7 @@ import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.patch
 import io.ktor.server.routing.post
+import io.ktor.server.routing.put
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
@@ -22,6 +23,8 @@ import org.mycompany.hris.employee.model.PatchEmployeeRequest
 import org.mycompany.hris.model.EmployeeId
 import org.mycompany.hris.orgchart.OrgChartService
 import org.mycompany.hris.orgchart.model.Expand
+import org.mycompany.hris.performancereview.PerformanceReviewService
+import org.mycompany.hris.performancereview.model.SubmitPerformanceReviewRequest
 import org.mycompany.hris.utils.extractMandatoryPathParameter
 import org.mycompany.hris.utils.extractMandatoryQueryParameter
 import org.mycompany.hris.utils.extractQueryParameter
@@ -37,6 +40,7 @@ fun Application.configureRoutes() {
         route("/api/v1/hris") {
             employeesRoutes()
             orgChartRoutes()
+            performanceReviewRoutes()
         }
         operationalRoutes()
     }
@@ -93,6 +97,33 @@ private fun Route.orgChartRoutes() {
                 ),
             )
             val response = orgChartService.getEmployeeOrgChart(employeeId, expand, step)
+            call.respond(HttpStatusCode.OK, response)
+        }
+    }
+}
+
+private fun Route.performanceReviewRoutes() {
+    val performanceReviewService by closestDI().instance<PerformanceReviewService>()
+    put("/performance-reviews") {
+        withErrorHandling {
+            val body = call.receive(SubmitPerformanceReviewRequest::class)
+            performanceReviewService.upsertPerformanceReview(body)
+            call.respond(HttpStatusCode.OK)
+        }
+    }
+    get("/performance-reviews/{employeeId}") {
+        withErrorHandling {
+            val employeeId = extractMandatoryPathParameter("employeeId").let(EmployeeId::fromString)
+            val limit = extractQueryParameter("limit")?.toInt() ?: 20
+            val offset = extractQueryParameter("offset")?.toLong() ?: 0L
+            MDC.getCopyOfContextMap().putAll(
+                mapOf(
+                    "employeeId" to employeeId.toString(),
+                    "limit" to limit.toString(),
+                    "offset" to offset.toString(),
+                ),
+            )
+            val response = performanceReviewService.getPerformanceReviews(employeeId, limit, offset)
             call.respond(HttpStatusCode.OK, response)
         }
     }

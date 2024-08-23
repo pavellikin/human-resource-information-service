@@ -15,6 +15,8 @@ import org.mycompany.hris.orgchart.CacheConfig
 import org.mycompany.hris.orgchart.OrgChartConfig
 import org.mycompany.hris.orgchart.OrgChartRepository
 import org.mycompany.hris.orgchart.OrgChartService
+import org.mycompany.hris.performancereview.PerformanceReviewRepository
+import org.mycompany.hris.performancereview.PerformanceReviewService
 import java.time.Duration
 
 fun Application.configureDi() {
@@ -34,5 +36,7 @@ fun Application.configureDi() {
             )
         }
         bindSingleton<OrgChartService> { OrgChartService(instance(), instance()) }
+        bindSingleton<PerformanceReviewRepository> { PerformanceReviewRepository() }
+        bindSingleton<PerformanceReviewService> { PerformanceReviewService(instance(), instance()) }
     }
 }

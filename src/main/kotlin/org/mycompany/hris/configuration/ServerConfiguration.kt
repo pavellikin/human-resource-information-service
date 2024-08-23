@@ -1,5 +1,8 @@
 package org.mycompany.hris.configuration
 
+import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import io.ktor.http.HttpHeaders
 import io.ktor.serialization.jackson.jackson
 import io.ktor.server.application.Application
@@ -22,7 +25,11 @@ import org.slf4j.event.Level
 
 fun Application.configureServer() {
     install(ContentNegotiation) {
-        jackson()
+        jackson {
+            this.registerModules(JavaTimeModule())
+                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                .setSerializationInclusion(JsonInclude.Include.NON_NULL)
+        }
     }
     install(DefaultHeaders)
     install(CORS) {

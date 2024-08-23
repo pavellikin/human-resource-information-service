@@ -1,5 +1,6 @@
 package org.mycompany.hris
 
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logging
@@ -13,9 +14,12 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.junit.jupiter.api.TestInstance
 import org.mycompany.hris.configuration.tables.EmployeesTable
+import org.mycompany.hris.configuration.tables.PerformanceReviewsTable
 import org.testcontainers.containers.PostgreSQLContainer
 
+@TestInstance(value = TestInstance.Lifecycle.PER_CLASS)
 abstract class AbstractE2eTest {
     companion object {
         val postgresContainer: PostgreSQLContainer<*> =
@@ -35,7 +39,7 @@ abstract class AbstractE2eTest {
                 level = LogLevel.ALL
             }
             install(ContentNegotiation) {
-                jackson()
+                jackson { this.registerModules(JavaTimeModule()) }
             }
         }
 
@@ -54,6 +58,7 @@ abstract class AbstractE2eTest {
                                 "datasource.url" to postgresContainer.getJdbcUrl(),
                                 "datasource.username" to postgresContainer.username,
                                 "datasource.password" to postgresContainer.password,
+                                "datasource.maximumPoolSize" to "1",
                                 "logging.root" to "TRACE",
                             ),
                         )
@@ -64,6 +69,7 @@ abstract class AbstractE2eTest {
                     block()
                     transaction {
                         EmployeesTable.deleteAll()
+                        PerformanceReviewsTable.deleteAll()
                     }
                 }
             }

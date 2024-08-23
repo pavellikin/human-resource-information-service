@@ -60,7 +60,7 @@ paths:
           in: path
           required: true
           schema:
-           $ref: "#/components/schemas/EmployeeId"
+            $ref: "#/components/schemas/EmployeeId"
       requestBody:
         content:
           application/json:
@@ -229,60 +229,16 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /performance-reviews/{employeeId}/assigned:
-    get:
-      tags:
-        - performance-reviews
-      description: Get current assigned performance reviews employee needs to fill and submit
-      operationId: getAssignedPerformanceReviews
-      parameters:
-        - name: employeeId
-          in: path
-          required: true
-          schema:
-            $ref: "#/components/schemas/EmployeeId"
-      responses:
-        '200':
-          description: Opened performance reviews assigned to the employee
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GetAssignedPerformanceReviewsResponse'
-        '400':
-          description: Invalid input
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: Employee not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '500':
-          description: Internal error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  /performance-reviews/{employeeId}/submit:
+  /performance-reviews/:
     put:
       tags:
         - performance-reviews
       description: Create or update performance review for the reviewed employee
-      parameters:
-        - name: employeeId
-          in: path
-          required: true
-          schema:
-            $ref: "#/components/schemas/EmployeeId"
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateEmployeeRequest'
+              $ref: '#/components/schemas/SubmitPerformanceReviewRequest'
       responses:
         '200':
           description: Performance review was submitted
@@ -322,6 +278,8 @@ paths:
           description: Number of performance reviews to return within one request
           schema:
             type: integer
+            maximum: 100
+            minimum: 0
             default: 20
         - name: offset
           in: query
@@ -329,6 +287,8 @@ paths:
           description: Position of performance review to start selection with
           schema:
             type: integer
+            format: int64
+            maximum: 0
             default: 0
       responses:
         '200':
@@ -466,85 +426,85 @@ components:
           items:
             $ref: '#/components/schemas/Employee'
 
-    GetAssignedPerformanceReviewsResponse:
-      type: object
-      required:
-        - employeeIds
-      properties:
-        employeeIds:
-          type: array
-          items:
-            $ref: "#/components/schemas/EmployeeId"
-          example: [ 27a7d6e6-4270-41eb-862c-6be9a843a16a, 27a7d6e6-4270-41eb-862c-6be9a843a16a, 27a7d6e6-4270-41eb-862c-6be9a843a16a ]
-
     SubmitPerformanceReviewRequest:
       type: object
       required:
+        - revieweeId
         - reviewerId
         - performance
         - softSkills
         - independence
         - aspirationForGrowth
       properties:
+        revieweeId:
+          $ref: '#/components/schemas/EmployeeId'
         reviewerId:
-          type: string
-          format: uuid
-          example: 27a7d6e6-4270-41eb-862c-6be9a843a16a
+          $ref: '#/components/schemas/EmployeeId'
         performance:
-          $ref: '#/components/schemas/ReviewCriterion'
+          $ref: '#/components/schemas/ReviewScore'
         softSkills:
-          $ref: '#/components/schemas/ReviewCriterion'
+          $ref: '#/components/schemas/ReviewScore'
         independence:
-          $ref: '#/components/schemas/ReviewCriterion'
+          $ref: '#/components/schemas/ReviewScore'
         aspirationForGrowth:
-          $ref: '#/components/schemas/ReviewCriterion'
+          $ref: '#/components/schemas/ReviewScore'
+        comment:
+          $ref: '#/components/schemas/ReviewComment'
+        date:
+          type: string
+          format: date
 
     PerformanceReviewHistoryResponse:
       type: object
       required:
         - reviews
+        - limit
+        - offset
       properties:
         reviews:
           type: array
           items:
-            $ref: '#/components/schemas/PerformanceReview'
+            $ref: '#/components/schemas/EmployeePerformanceReview'
+        limit:
+          type: integer
+        offset:
+          type: integer
+          format: int64
 
-    PerformanceReview:
+    EmployeePerformanceReview:
       type: object
       required:
+        - revieweeId
         - performance
         - softSkills
         - independence
         - aspirationForGrowth
         - createdAt
       properties:
-        id:
-          type: string
-          format: uuid
+        revieweeId:
+          $ref: '#/components/schemas/EmployeeId'
         performance:
-          $ref: '#/components/schemas/ReviewCriterion'
+          $ref: '#/components/schemas/ReviewScore'
         softSkills:
-          $ref: '#/components/schemas/ReviewCriterion'
+          $ref: '#/components/schemas/ReviewScore'
         independence:
-          $ref: '#/components/schemas/ReviewCriterion'
+          $ref: '#/components/schemas/ReviewScore'
         aspirationForGrowth:
-          $ref: '#/components/schemas/ReviewCriterion'
+          $ref: '#/components/schemas/ReviewScore'
+        comment:
+          $ref: '#/components/schemas/ReviewComment'
         createdAt:
           type: string
           format: date
 
-    ReviewCriterion:
-      type: object
-      required:
-        - score
-      properties:
-        score:
-          type: integer
-          minimum: 1
-          maximum: 10
-        comment:
-          type: string
-          maximum: 2000
+    ReviewScore:
+      type: integer
+      minimum: 1
+      maximum: 10
+
+    ReviewComment:
+      type: string
+      maximum: 2000
 
     EmployeeId:
       description: Employee id in uuid format

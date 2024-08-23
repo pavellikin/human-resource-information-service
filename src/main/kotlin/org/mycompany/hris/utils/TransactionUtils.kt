@@ -8,7 +8,7 @@ import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransacti
 // So I decided to create a transaction wrapper to attach a transaction to the Dispatchers.IO in one place.
 suspend fun <T> inTx(callback: suspend () -> T): T =
     withContext(Dispatchers.IO) {
-        return@withContext newSuspendedTransaction {
+        return@withContext newSuspendedTransaction(coroutineContext) {
             callback()
         }
     }
