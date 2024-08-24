@@ -8,7 +8,7 @@ import org.mycompany.hris.model.Position
 data class PatchEmployeeRequest(
     val position: Position? = null,
     val supervisor: EmployeeId? = null,
-    // So simplicity it is only possible to rewrite all subordinates.
+    // For simplicity, it is only possible to rewrite all subordinates.
     val subordinates: Set<EmployeeId>? = null,
 ) {
     @JsonIgnore

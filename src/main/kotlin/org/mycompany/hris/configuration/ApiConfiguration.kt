@@ -59,6 +59,7 @@ private fun Route.employeesRoutes() {
     patch("/employees/{employeeId}") {
         withErrorHandling {
             val employeeId = extractMandatoryPathParameter("employeeId").let(EmployeeId::fromString)
+            MDC.put("employeeId", employeeId.toString())
             val body = call.receive(PatchEmployeeRequest::class)
             employeeService.updateEmployee(employeeId, body)
             call.respond(HttpStatusCode.OK)
@@ -67,12 +68,14 @@ private fun Route.employeesRoutes() {
     get("/employees/{employeeId}") {
         withErrorHandling {
             val employeeId = extractMandatoryPathParameter("employeeId").let(EmployeeId::fromString)
+            MDC.put("employeeId", employeeId.toString())
             val response = employeeService.getEmployee(employeeId)
             call.respond(HttpStatusCode.OK, response)
         }
     }
     delete("/employees/{employeeId}") {
         val employeeId = extractMandatoryPathParameter("employeeId").let(EmployeeId::fromString)
+        MDC.put("employeeId", employeeId.toString())
         employeeService.deleteEmployee(employeeId)
         call.respond(HttpStatusCode.OK)
     }
