@@ -15,6 +15,7 @@ import io.ktor.server.routing.put
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
+import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.kodein.di.instance
 import org.kodein.di.ktor.closestDI
 import org.mycompany.hris.employee.EmployeeService
@@ -139,6 +140,11 @@ private fun Route.operationalRoutes() {
         call.respond(registry.scrape())
     }
     get("/health") {
-        call.respond(HttpStatusCode.OK)
+        try {
+            newSuspendedTransaction { exec("SELECT 1") }
+            call.respond(HttpStatusCode.OK)
+        } catch (ex: Exception) {
+            call.respond(HttpStatusCode.InternalServerError)
+        }
     }
 }

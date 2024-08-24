@@ -15,4 +15,14 @@ class OperationalTest : AbstractE2eTest() {
 
             assertEquals(HttpStatusCode.OK, response.status)
         }
+
+    @Test
+    fun `get health`() =
+        e2eTest {
+            val client = configureClient()
+
+            val response = client.get("/health")
+
+            assertEquals(HttpStatusCode.OK, response.status)
+        }
 }
