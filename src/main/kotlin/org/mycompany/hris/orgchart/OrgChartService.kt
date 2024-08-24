@@ -14,7 +14,7 @@ class OrgChartService(
     // The row size without email will be 16 + 10 + 20 + 40 + 16 + (16 * 5) = 182 bytes. Let's use 200 bytes for simplicity.
     // For a medium size organization of ~1000 employees the amount of data to extract will be 200 * 1000 = 200 Kb.
     // For a large organization of 2 million employees (Walmart) the data to extract will be ~400 Mb.
-    // For big organizations it makes sense to add a distributed cache (Redis).
+    // large big organizations it makes sense to add a distributed cache.
     suspend fun getAllOrgChart(): Map<EmployeeId, OrgChartEmployee> {
         return inTx { orgChartRepository.getAllEmployees() }
             .sortedBy { it.position.order }

@@ -30,6 +30,7 @@ import org.mycompany.hris.model.Position
 import java.util.UUID
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class EmployeeServiceTest : AbstractE2eTest() {
@@ -61,6 +62,36 @@ class EmployeeServiceTest : AbstractE2eTest() {
                         assertEquals(request.position.name, dbEmployees.first()[position])
                         assertEquals(request.supervisor!!.value, dbEmployees.first()[supervisor])
                         assertContentEquals(request.subordinates, dbEmployees.first()[subordinates]!!.map { EmployeeId(it) })
+                    }
+                }
+            }
+        }
+
+    @Test
+    fun `create placeholder employee`() =
+        e2eTest {
+            val client = configureClient()
+            val request = givenCreateEmployeeRequest().copy(supervisor = null, subordinates = null)
+
+            val response =
+                client.post("/api/v1/hris/employees") {
+                    contentType(ContentType.Application.Json)
+                    setBody(request)
+                }
+
+            assertEquals(HttpStatusCode.Created, response.status)
+            newSuspendedTransaction {
+                val employeeId = response.body<CreateEmployeeResponse>().employeeId.value
+                with(EmployeesTable) {
+                    selectAll().where(id eq employeeId).toList().also { dbEmployees ->
+                        assertEquals(1, dbEmployees.size)
+                        assertEquals(employeeId, dbEmployees.first()[id])
+                        assertEquals(request.name.value, dbEmployees.first()[name])
+                        assertEquals(request.surname.value, dbEmployees.first()[surname])
+                        assertEquals(request.email.value, dbEmployees.first()[email])
+                        assertEquals(request.position.name, dbEmployees.first()[position])
+                        assertNull(dbEmployees.first()[supervisor])
+                        assertNull(dbEmployees.first()[subordinates])
                     }
                 }
             }
