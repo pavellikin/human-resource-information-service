@@ -63,9 +63,6 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:1.5.7")
     implementation("net.logstash.logback:logstash-logback-encoder:8.0")
 
-    // cache
-    implementation("com.github.ben-manes.caffeine:caffeine:3.1.8")
-
     // test
     testImplementation(kotlin("test"))
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
