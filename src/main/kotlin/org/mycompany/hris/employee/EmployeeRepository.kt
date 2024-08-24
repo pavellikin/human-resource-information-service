@@ -53,11 +53,10 @@ class EmployeeRepository {
         }
     }
 
-    suspend fun getEmployeeById(employeeId: EmployeeId): GetEmployeeResponse =
+    suspend fun getEmployeeById(employeeId: EmployeeId) =
         withContext(Dispatchers.IO) {
             EmployeesTable.selectAll().where(EmployeesTable.id eq employeeId.value)
-                .first()
-                .let { statement ->
+                .map { statement ->
                     GetEmployeeResponse(
                         employeeId = employeeId,
                         name = Name(statement[name]),

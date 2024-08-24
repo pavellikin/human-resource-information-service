@@ -2,8 +2,10 @@ package org.mycompany.hris.configuration
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpMethod
 import io.ktor.serialization.jackson.jackson
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
@@ -15,6 +17,7 @@ import io.ktor.server.plugins.callloging.CallLogging
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.cors.routing.CORS
 import io.ktor.server.plugins.defaultheaders.DefaultHeaders
+import io.ktor.server.routing.IgnoreTrailingSlash
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.binder.jvm.JvmGcMetrics
 import io.micrometer.core.instrument.binder.jvm.JvmMemoryMetrics
@@ -28,13 +31,18 @@ fun Application.configureServer() {
         jackson {
             this.registerModules(JavaTimeModule())
                 .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
                 .setSerializationInclusion(JsonInclude.Include.NON_NULL)
         }
     }
     install(DefaultHeaders)
     install(CORS) {
         anyHost()
+        listOf(HttpMethod.Options, HttpMethod.Patch, HttpMethod.Put, HttpMethod.Delete)
+            .forEach { allowMethod(it) }
+        allowHeader(HttpHeaders.AccessControlAllowHeaders)
         allowHeader(HttpHeaders.ContentType)
+        allowHeader(HttpHeaders.AccessControlAllowOrigin)
     }
     val loggingLevel =
         environment.config.config("logging").property("root")
@@ -48,6 +56,7 @@ fun Application.configureServer() {
         retrieveFromHeader(HttpHeaders.XRequestId)
         generate(10, "abcde12345")
     }
+    install(IgnoreTrailingSlash)
     val meterRegistry by closestDI().instance<MeterRegistry>()
     install(MicrometerMetrics) {
         registry = meterRegistry

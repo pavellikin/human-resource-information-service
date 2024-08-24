@@ -107,7 +107,7 @@ tasks.register<JavaExec>("generateMigrationScripts") {
         "POSTGRES_MIGRATE" to true,
         "POSTGRES_URL" to postgresUrl,
         "POSTGRES_USER" to postgresUser,
-        "POSTGRES_PASSWORD" to postgresPassword
+        "POSTGRES_PASSWORD" to postgresPassword,
     )
     group = "application"
     description = "Generate migration scripts in the path exposed-migration/migrations"

@@ -19,6 +19,9 @@ services:
       - FLYWAY_USER=postgres
       - FLYWAY_PASSWORD=postgres
     command: migrate
+    depends_on:
+      postgres:
+        condition: service_healthy
   postgres:
     image: postgres:16.4
     container_name: hris_postgres

@@ -1,7 +1,6 @@
 package org.mycompany.hris.configuration
 
 import io.ktor.server.application.Application
-import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import org.jetbrains.exposed.sql.Database
@@ -18,7 +17,7 @@ import org.mycompany.hris.performancereview.PerformanceReviewService
 
 fun Application.configureDi() {
     di {
-        bindEagerSingleton<MeterRegistry> { PrometheusMeterRegistry(PrometheusConfig.DEFAULT) }
+        bindEagerSingleton<PrometheusMeterRegistry> { PrometheusMeterRegistry(PrometheusConfig.DEFAULT) }
         bindEagerSingleton<Database> { configureDatabase(instance()) }
         bindSingleton<EmployeeRepository> { EmployeeRepository() }
         bindSingleton<EmployeeService> { EmployeeService(instance()) }

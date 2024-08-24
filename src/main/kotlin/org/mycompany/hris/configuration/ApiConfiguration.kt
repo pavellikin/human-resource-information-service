@@ -130,10 +130,12 @@ private fun Route.performanceReviewRoutes() {
 }
 
 private fun Route.operationalRoutes() {
-    val di = closestDI()
-    swaggerUI(path = "openapi", swaggerFile = "openapi/human-resource-information-service.yaml")
+    // Disable Swagger UI for prod
+    if (environment?.config?.config("envConfig")?.property("env")?.getString() != "prod") {
+        swaggerUI(path = "openapi", swaggerFile = "openapi/human-resource-information-service.yaml")
+    }
+    val registry by closestDI().instance<PrometheusMeterRegistry>()
     get("/metrics") {
-        val registry by di.instance<PrometheusMeterRegistry>()
         call.respond(registry.scrape())
     }
     get("/health") {

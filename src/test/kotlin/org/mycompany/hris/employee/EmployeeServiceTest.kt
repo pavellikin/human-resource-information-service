@@ -26,6 +26,7 @@ import org.mycompany.hris.givenPosition
 import org.mycompany.hris.givenSurname
 import org.mycompany.hris.model.EmployeeId
 import org.mycompany.hris.model.Position
+import java.util.UUID
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -123,6 +124,19 @@ class EmployeeServiceTest : AbstractE2eTest() {
                 assertEquals(createEmployeeRequest.supervisor, it.supervisor)
                 assertContentEquals(createEmployeeRequest.subordinates, it.subordinates)
             }
+        }
+
+    @Test
+    fun `get unknown employee`() =
+        e2eTest {
+            val client = configureClient()
+
+            val getResponse =
+                client.get("/api/v1/hris/employees/${UUID.randomUUID()}") {
+                    contentType(ContentType.Application.Json)
+                }
+
+            assertEquals(HttpStatusCode.NotFound, getResponse.status)
         }
 
     @Test
