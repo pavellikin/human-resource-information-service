@@ -1,12 +1,5 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
-import org.testcontainers.containers.PostgreSQLContainer
-
-buildscript {
-    dependencies {
-        classpath("org.testcontainers:postgresql:1.20.1")
-    }
-}
 
 plugins {
     application
@@ -106,26 +99,18 @@ kotlin {
     jvmToolchain(21)
 }
 
-val postgresContainer: PostgreSQLContainer<*> =
-    PostgreSQLContainer("postgres:16.4")
-        .withDatabaseName("human_resource_information")
-        .withUsername("postgres")
-        .withPassword("postgres")
-
+val postgresUrl = "jdbc:postgresql://localhost:5432/human_resource_information"
+val postgresUser = "postgres"
+val postgresPassword = "postgres"
 tasks.register<JavaExec>("generateMigrationScripts") {
-    if (!postgresContainer.isRunning()) {
-        postgresContainer.start()
-    }
-
     environment(
         "POSTGRES_MIGRATE" to true,
-        "POSTGRES_URL" to postgresContainer.getJdbcUrl(),
-        "POSTGRES_USER" to postgresContainer.username,
-        "POSTGRES_PASSWORD" to postgresContainer.password,
+        "POSTGRES_URL" to postgresUrl,
+        "POSTGRES_USER" to postgresUser,
+        "POSTGRES_PASSWORD" to postgresPassword
     )
     group = "application"
     description = "Generate migration scripts in the path exposed-migration/migrations"
     classpath = sourceSets.main.get().runtimeClasspath
     mainClass = "org/mycompany/hris/GenerateMigrationScriptsKt"
-    doLast { postgresContainer.stop() }
 }
