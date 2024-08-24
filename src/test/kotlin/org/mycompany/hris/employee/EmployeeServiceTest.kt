@@ -10,6 +10,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 import org.junit.jupiter.api.Test
@@ -36,7 +37,10 @@ class EmployeeServiceTest : AbstractE2eTest() {
     fun `create employee`() =
         e2eTest {
             val client = configureClient()
-            val request = givenCreateEmployeeRequest()
+            val request =
+                givenCreateEmployeeRequest().also {
+                    prepareDataForRequest(it.supervisor, it.subordinates)
+                }
 
             val response =
                 client.post("/api/v1/hris/employees") {
@@ -66,7 +70,10 @@ class EmployeeServiceTest : AbstractE2eTest() {
     fun `patch employee`() =
         e2eTest {
             val client = configureClient()
-            val createEmployeeRequest = givenCreateEmployeeRequest()
+            val createEmployeeRequest =
+                givenCreateEmployeeRequest().also {
+                    prepareDataForRequest(it.supervisor, it.subordinates)
+                }
             val newPosition = Position.CTO
             val patchEmployeeRequest = givenPatchEmployeeRequest(position = newPosition)
 
@@ -103,7 +110,10 @@ class EmployeeServiceTest : AbstractE2eTest() {
     fun `get employee`() =
         e2eTest {
             val client = configureClient()
-            val createEmployeeRequest = givenCreateEmployeeRequest()
+            val createEmployeeRequest =
+                givenCreateEmployeeRequest().also {
+                    prepareDataForRequest(it.supervisor, it.subordinates)
+                }
 
             val employeeId =
                 client.post("/api/v1/hris/employees") {
@@ -143,7 +153,10 @@ class EmployeeServiceTest : AbstractE2eTest() {
     fun `delete employee`() =
         e2eTest {
             val client = configureClient()
-            val createEmployeeRequest = givenCreateEmployeeRequest()
+            val createEmployeeRequest =
+                givenCreateEmployeeRequest().also {
+                    prepareDataForRequest(it.supervisor, it.subordinates)
+                }
 
             val employeeId =
                 client.post("/api/v1/hris/employees") {
@@ -165,6 +178,14 @@ class EmployeeServiceTest : AbstractE2eTest() {
             }
         }
 
+    private suspend fun prepareDataForRequest(
+        supervisor: EmployeeId? = null,
+        subordinates: Set<EmployeeId>? = null,
+    ) = newSuspendedTransaction {
+        supervisor?.let { prefillDbForEmployee(it) }
+        subordinates?.forEach { prefillDbForEmployee(it) }
+    }
+
     private fun givenCreateEmployeeRequest() =
         CreateEmployeeRequest(
             givenName(),
@@ -174,6 +195,16 @@ class EmployeeServiceTest : AbstractE2eTest() {
             givenEmployeeId(),
             setOf(givenEmployeeId()),
         )
+
+    private suspend fun prefillDbForEmployee(employeeId: EmployeeId) {
+        EmployeesTable.insert { st ->
+            st[id] = employeeId.value
+            st[name] = "Name"
+            st[surname] = "Surname"
+            st[email] = "name.surname@mycompany.com"
+            st[position] = Position.CEO.name
+        }
+    }
 
     private fun givenPatchEmployeeRequest(
         position: Position? = null,
