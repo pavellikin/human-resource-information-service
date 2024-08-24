@@ -27,5 +27,5 @@ INSERT INTO employees (id, name, surname, email, position, supervisor, subordina
 ('00000000-0000-0000-0000-000000000008'::uuid, 'Mark', 'Irving', 'mark.irving@mycompany.com', 'SoftwareEngineer', '00000000-0000-0000-0000-000000000004'::uuid, NULL, NOW()),
 ('00000000-0000-0000-0000-000000000009'::uuid, 'Sarah', 'Jones', 'sarah.jones@mycompany.com', 'SoftwareEngineer', '00000000-0000-0000-0000-000000000004'::uuid, NULL, NOW()),
 ('00000000-0000-0000-0000-000000000010'::uuid, 'David', 'King', 'david.king@mycompany.com', 'SoftwareEngineer', '00000000-0000-0000-0000-000000000006'::uuid, NULL, NOW()),
-('00000000-0000-0000-0000-000000000011'::uuid, 'Nora', 'Lewis', 'nora.lewis@mycompany.com', 'SoftwareEngineer', '00000000-0000-0000-0000-000000000007'::uuid, NULL, NOW())
+('00000000-0000-0000-0000-000000000011'::uuid, 'Nora', 'Lewis', 'nora.lewis@mycompany.com', 'SoftwareEngineer', '00000000-0000-0000-0000-000000000006'::uuid, NULL, NOW())
 on conflict do nothing;

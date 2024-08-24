@@ -94,7 +94,7 @@ class OrgChartServiceTest : AbstractE2eTest() {
                 val iterator = orgChart.asIterable().iterator()
                 assertEquals(Position.CPO, iterator.next().value.position)
                 assertEquals(Position.ProductManager, iterator.next().value.position)
-                assertEquals(Position.ProductManager, iterator.next().value.position)
+                assertEquals(Position.SoftwareEngineer, iterator.next().value.position)
                 assertEquals(Position.SoftwareEngineer, iterator.next().value.position)
             }
         }

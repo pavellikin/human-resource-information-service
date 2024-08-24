@@ -27,17 +27,18 @@ class OrgChartService(
         step: Int,
     ): Map<EmployeeId, OrgChartEmployee> =
         inTx {
-            val employeeList = orgChartRepository.getEmployees(listOf(employeeId))
-            val employee =
-                if (employeeList.isEmpty()) {
-                    throw NotFoundException("Employee $employeeId not found")
-                } else {
-                    employeeList.first()
-                }
+            val employeeTree = orgChartRepository.getWithColleagues(employeeId).associateBy { it.employeeId }
+            if (employeeTree.isEmpty()) {
+                throw NotFoundException("Employee $employeeId not found")
+            }
             val subChart = mutableMapOf<EmployeeId, OrgChartEmployee>()
-            employee.supervisor?.let { supervisor -> orgChartRepository.getEmployees(listOf(supervisor)).onEach { subChart[it.employeeId] = it } }
-            subChart[employee.employeeId] = employee
-            employee.subordinates?.let { subordinates -> orgChartRepository.getEmployees(subordinates).onEach { subChart[it.employeeId] = it } }
+            val employee =
+                checkNotNull(employeeTree[employeeId]).let { e ->
+                    subChart[e.employeeId] = e
+                    employeeTree[e.supervisor]?.let { s -> subChart[s.employeeId] = s }
+                    e.subordinates?.mapNotNull { employeeTree[it] }?.onEach { s -> subChart[s.employeeId] = s }
+                    e
+                }
             when (expand) {
                 Expand.None -> {}
                 Expand.Top -> expandTop(subChart, employee, step)
@@ -57,12 +58,8 @@ class OrgChartService(
         var supervisor = employee.supervisor
         while (supervisor != null && counter < step) {
             subChart[supervisor]?.let { e ->
+                supervisor?.let { s -> orgChartRepository.getWithColleagues(s).onEach { subChart[it.employeeId] = it } }
                 supervisor = e.supervisor
-                supervisor?.let { s ->
-                    val oce = orgChartRepository.getEmployees(listOf(s))
-                    (oce.mapNotNull { it.subordinates }.flatMap { sub -> orgChartRepository.getEmployees(sub) } + oce)
-                        .onEach { subChart[it.employeeId] = it }
-                }
             }
             counter++
         }
