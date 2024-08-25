@@ -15,6 +15,7 @@ fun Application.configureDatabase(prometheusMeterRegistry: MeterRegistry): Datab
             password = dbConfig.property("password").getString()
             poolName = dbConfig.property("poolName").getString()
             maximumPoolSize = dbConfig.property("maximumPoolSize").getString().toInt()
+            idleTimeout = dbConfig.property("idleTimeout").getString().toLong()
             metricRegistry = prometheusMeterRegistry
             connectionTimeout = dbConfig.property("connectionTimeout").getString().toLong()
         }
