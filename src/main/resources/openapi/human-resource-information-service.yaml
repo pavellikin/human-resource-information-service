@@ -341,6 +341,7 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/EmployeeId"
+          example: [ '00000000-0000-0000-0000-000000000008' ]
 
     CreateEmployeeResponse:
       type: object

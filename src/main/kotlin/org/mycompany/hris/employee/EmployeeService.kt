@@ -90,6 +90,9 @@ class EmployeeService(
                     throw BadRequestException("Supervisor has a lover position (${supervisor.position}) then employee $position")
                 }
             }
+            if (setOf(it) == subordinates) {
+                throw BadRequestException("Supervisor can't be one of subordinates")
+            }
         }
         subordinates?.forEach {
             if (!employeeRepository.isEmployeeExist(it)) {
