@@ -2,16 +2,17 @@ package org.mycompany.hris.orgchart
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import org.jetbrains.exposed.sql.JoinType
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eqSubQuery
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
-import org.jetbrains.exposed.sql.alias
-import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.union
+import org.jetbrains.exposed.sql.unionAll
 import org.mycompany.hris.configuration.tables.EmployeesTable
 import org.mycompany.hris.configuration.tables.EmployeesTable.id
 import org.mycompany.hris.configuration.tables.EmployeesTable.name
 import org.mycompany.hris.configuration.tables.EmployeesTable.position
+import org.mycompany.hris.configuration.tables.EmployeesTable.select
 import org.mycompany.hris.configuration.tables.EmployeesTable.subordinates
 import org.mycompany.hris.configuration.tables.EmployeesTable.supervisor
 import org.mycompany.hris.configuration.tables.EmployeesTable.surname
@@ -41,27 +42,24 @@ class OrgChartRepository {
 
     suspend fun getWithColleagues(employeeId: EmployeeId) =
         withContext(Dispatchers.IO) {
-            val above = EmployeesTable.alias("above")
-            val below = EmployeesTable.alias("below")
-            val current = EmployeesTable.alias("current")
-            current
-                .join(above, JoinType.LEFT, above[id], current[supervisor])
-                .join(below, JoinType.LEFT, below[supervisor], current[id])
-                .selectAll()
-                .where(
-                    current[id] eq employeeId.value,
-                ).flatMap { row ->
-                    listOf(above, current, below).mapNotNull { alias ->
-                        val id = row[alias[id]] ?: return@mapNotNull null
-                        OrgChartEmployee(
-                            employeeId = EmployeeId(id),
-                            name = Name(row[alias[name]]),
-                            surname = Surname(row[alias[surname]]),
-                            position = Position.valueOf(row[alias[position]]),
-                            supervisor = row[alias[supervisor]]?.let { EmployeeId(it) },
-                            subordinates = row[alias[subordinates]]?.let { s -> s.map { EmployeeId(it) } },
-                        )
-                    }
+            val columns = listOf(id, name, surname, position, supervisor, subordinates)
+            EmployeesTable.select(columns).where(id eq employeeId.value)
+                .unionAll(
+                    EmployeesTable.select(columns).where(id eqSubQuery (EmployeesTable.select(supervisor).where(id eq employeeId.value))),
+                )
+                .unionAll(
+                    EmployeesTable.select(columns).where(supervisor eq employeeId.value),
+                ).union(
+                    EmployeesTable.select(columns).where(supervisor eqSubQuery (EmployeesTable.select(supervisor).where(id eq employeeId.value))),
+                ).map { row ->
+                    OrgChartEmployee(
+                        employeeId = EmployeeId(row[id]),
+                        name = Name(row[name]),
+                        surname = Surname(row[surname]),
+                        position = Position.valueOf(row[position]),
+                        supervisor = row[supervisor]?.let { EmployeeId(it) },
+                        subordinates = row[subordinates]?.let { s -> s.map { EmployeeId(it) } },
+                    )
                 }
         }
 

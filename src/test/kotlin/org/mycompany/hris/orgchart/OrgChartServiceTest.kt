@@ -62,10 +62,11 @@ class OrgChartServiceTest : AbstractE2eTest() {
 
             assertEquals(HttpStatusCode.OK, response.status)
             response.body<Map<UUID, OrgChartEmployee>>().let { orgChart ->
-                assertEquals(4, orgChart.size)
+                assertEquals(5, orgChart.size)
                 val iterator = orgChart.asIterable().iterator()
                 assertEquals(Position.CEO, iterator.next().value.position)
                 assertEquals(Position.CTO, iterator.next().value.position)
+                assertEquals(Position.CPO, iterator.next().value.position)
                 assertEquals(Position.EngineeringManager, iterator.next().value.position)
                 assertEquals(Position.EngineeringManager, iterator.next().value.position)
             }
@@ -90,9 +91,10 @@ class OrgChartServiceTest : AbstractE2eTest() {
 
             assertEquals(HttpStatusCode.OK, response.status)
             response.body<Map<UUID, OrgChartEmployee>>().let { orgChart ->
-                assertEquals(4, orgChart.size)
+                assertEquals(5, orgChart.size)
                 val iterator = orgChart.asIterable().iterator()
                 assertEquals(Position.CPO, iterator.next().value.position)
+                assertEquals(Position.ProductManager, iterator.next().value.position)
                 assertEquals(Position.ProductManager, iterator.next().value.position)
                 assertEquals(Position.SoftwareEngineer, iterator.next().value.position)
                 assertEquals(Position.SoftwareEngineer, iterator.next().value.position)

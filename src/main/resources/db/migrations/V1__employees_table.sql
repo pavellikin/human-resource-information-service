@@ -6,5 +6,6 @@ CREATE TABLE employees (
     "position" VARCHAR(50) NOT NULL,
     supervisor uuid NULL,
     subordinates uuid [] NULL,
-    created_at date default now()
+    created_at timestamp default now()
 );
+create index employees_supervisor_idx on employees(supervisor);

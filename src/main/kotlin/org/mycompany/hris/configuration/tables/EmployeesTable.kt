@@ -1,8 +1,8 @@
 package org.mycompany.hris.configuration.tables
 
 import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.javatime.date
-import java.time.LocalDate
+import org.jetbrains.exposed.sql.javatime.timestamp
+import java.time.Instant
 import java.util.UUID
 
 object EmployeesTable : Table() {
@@ -15,9 +15,9 @@ object EmployeesTable : Table() {
     // The positions table can be very simple - id, name.
     // For simplicity, I will omit this table and will store positions names normalized by the service itself.
     val position = varchar("position", 50)
-    val supervisor = uuid("supervisor").nullable()
+    val supervisor = uuid("supervisor").index("employees_supervisor_idx").nullable()
     val subordinates = array<UUID>("subordinates").nullable()
-    val createdAt = date("created_at").default(LocalDate.now())
+    val createdAt = timestamp("created_at").default(Instant.now())
 
     override val primaryKey: PrimaryKey = PrimaryKey(id)
 }

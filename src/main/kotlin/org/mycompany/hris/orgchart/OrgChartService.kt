@@ -31,14 +31,8 @@ class OrgChartService(
             if (employeeTree.isEmpty()) {
                 throw NotFoundException("Employee $employeeId not found")
             }
-            val subChart = mutableMapOf<EmployeeId, OrgChartEmployee>()
-            val employee =
-                checkNotNull(employeeTree[employeeId]).let { e ->
-                    subChart[e.employeeId] = e
-                    employeeTree[e.supervisor]?.let { s -> subChart[s.employeeId] = s }
-                    e.subordinates?.mapNotNull { employeeTree[it] }?.onEach { s -> subChart[s.employeeId] = s }
-                    e
-                }
+            val subChart = employeeTree.toMutableMap()
+            val employee = checkNotNull(employeeTree[employeeId])
             when (expand) {
                 Expand.None -> {}
                 Expand.Top -> expandTop(subChart, employee, step)
