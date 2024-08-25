@@ -10,6 +10,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
@@ -188,6 +189,8 @@ class EmployeeServiceTest : AbstractE2eTest() {
                 givenCreateEmployeeRequest().also {
                     prepareDataForRequest(it.supervisor, it.subordinates)
                 }
+            val supervisor = checkNotNull(createEmployeeRequest.supervisor)
+            val subordinates = checkNotNull(createEmployeeRequest.subordinates).map { it.value }
 
             val employeeId =
                 client.post("/api/v1/hris/employees") {
@@ -205,6 +208,13 @@ class EmployeeServiceTest : AbstractE2eTest() {
                     selectAll().where(id eq employeeId).toList().also { dbEmployees ->
                         assertTrue(dbEmployees.isEmpty())
                     }
+                    selectAll().where(id inList subordinates)
+                        .map { it[EmployeesTable.supervisor] }
+                        .onEach { assertEquals(it, supervisor.value) }
+                    selectAll().where(id eq supervisor.value)
+                        .map { it[EmployeesTable.subordinates] }
+                        .first()
+                        .also { assertContentEquals(subordinates, it) }
                 }
             }
         }

@@ -4,7 +4,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.count
-import org.jetbrains.exposed.sql.deleteWhere
+import org.jetbrains.exposed.sql.deleteReturning
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.update
@@ -40,12 +40,12 @@ class EmployeeRepository {
         }
     }
 
-    suspend fun updateEmployee(
-        employeeId: EmployeeId,
+    suspend fun updateEmployees(
+        employeeIds: List<EmployeeId>,
         request: PatchEmployeeRequest,
     ) = withContext(Dispatchers.IO) {
         with(EmployeesTable) {
-            update({ id eq employeeId.value }) { statement ->
+            update({ id inList employeeIds.map { it.value }}) { statement ->
                 request.position?.let { statement[position] = it.name }
                 request.supervisor?.let { statement[supervisor] = it.value }
                 request.subordinates?.let { statement[subordinates] = it.map { s -> s.value } }
@@ -71,7 +71,13 @@ class EmployeeRepository {
 
     suspend fun deleteEmployeeById(employeeId: EmployeeId) =
         withContext(Dispatchers.IO) {
-            EmployeesTable.deleteWhere { id eq employeeId.value }
+            with(EmployeesTable) {
+                deleteReturning(listOf(supervisor, subordinates)) { id eq employeeId.value }
+                    .first()
+                    .let { statement ->
+                        statement[supervisor]?.let { EmployeeId(it) } to statement[subordinates]?.let { s -> s.map { EmployeeId(it) } }
+                    }
+            }
         }
 
     suspend fun isEmployeeExist(employeeId: EmployeeId) =

@@ -14,15 +14,11 @@ import java.util.UUID
 class EmployeeService(
     private val employeeRepository: EmployeeRepository,
 ) {
-    suspend fun createEmployee(request: CreateEmployeeRequest): CreateEmployeeResponse {
-        val employeeId =
-            inTx {
-                checkEmployeeData(request.position, request.supervisor, request.subordinates)
-                val employeeId = EmployeeId(UUID.randomUUID())
-                employeeRepository.createEmployee(employeeId, request)
-                employeeId
-            }
-        return CreateEmployeeResponse(employeeId)
+    suspend fun createEmployee(request: CreateEmployeeRequest): CreateEmployeeResponse = inTx {
+        checkEmployeeData(request.position, request.supervisor, request.subordinates)
+        val employeeId = EmployeeId(UUID.randomUUID())
+        employeeRepository.createEmployee(employeeId, request)
+        CreateEmployeeResponse(employeeId)
     }
 
     suspend fun updateEmployee(
@@ -34,7 +30,7 @@ class EmployeeService(
         }
         inTx {
             checkEmployeeData(request.position, request.supervisor, request.subordinates)
-            employeeRepository.updateEmployee(employeeId, request)
+            employeeRepository.updateEmployees(listOf(employeeId), request)
         }
     }
 
@@ -46,8 +42,20 @@ class EmployeeService(
         return employee.first()
     }
 
-    suspend fun deleteEmployee(employeeId: EmployeeId) {
-        inTx { employeeRepository.deleteEmployeeById(employeeId) }
+    suspend fun deleteEmployee(employeeId: EmployeeId) = inTx {
+        val (supervisorId, subordinates) = employeeRepository.deleteEmployeeById(employeeId)
+        val currentSubordinates = subordinates ?: emptyList()
+        if (supervisorId != null) {
+            val supervisor = employeeRepository.getEmployeeById(supervisorId)
+            if (supervisor.isEmpty()) {
+                return@inTx
+            }
+            val newSubordinates = ((supervisor.first().subordinates ?: emptyList()) + currentSubordinates).toSet()
+            if (newSubordinates.isNotEmpty()) {
+                employeeRepository.updateEmployees(listOf(supervisorId), PatchEmployeeRequest(subordinates = newSubordinates))
+            }
+        }
+        employeeRepository.updateEmployees(currentSubordinates, PatchEmployeeRequest(supervisor = supervisorId))
     }
 
     internal suspend fun isEmployeeExist(employeeId: EmployeeId) = employeeRepository.isEmployeeExist(employeeId)

@@ -8,7 +8,7 @@ The service was built with the following high level assumptions:
 2. For the new employee existence of supervisors and subordinates will be checked. The new employee position should be below the supervisor position.
 3. The checks for the new employee creation work also for the employee update. Name, surname, and email are not possible to update for simplicity.
 4. Employee change history is omitted for simplicity.
-5. Employee delete doesn't change links between employees. The delete consequences should be fixed by the next update requests.
+5. Employee delete moves all `subordinates` under `supervisor` of deleted employee.
 6. Employee delete doesn't remove employee-related performance reviews. Old performance reviews can be used for later analysis. GDPR-related logic can be implemented in the next iteration.
 7. For the org tree navigation in the Top direction every step will add `supervisor` and `supervisor.subordinates` to the result.
 8. Performance reviews are implemented with the assumption that they are:
@@ -20,6 +20,9 @@ The service was built with the following high level assumptions:
 Assumptions that were made during implementation can be found in the code comments.
 
 # Technical documentation
+
+- Anti-corruption layer omitted for simplicity
+- Minimum test coverage is 60%
 
 ## Deployment strategy
 ![Deployment strategy](documents/Deployment%20strategy.png)
@@ -48,7 +51,7 @@ The table structure looks the following:
 | position (varchar(50))     |
 | supervisor (uuid)          |
 | subordinates (uuid[])      |
-| created_at (date)          |
+| created_at (timestamp)     |
 +----------------------------+
 
 +----------------------------+
