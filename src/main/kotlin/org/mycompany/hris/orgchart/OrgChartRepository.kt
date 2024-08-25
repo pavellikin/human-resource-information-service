@@ -43,14 +43,15 @@ class OrgChartRepository {
     suspend fun getWithColleagues(employeeId: EmployeeId) =
         withContext(Dispatchers.IO) {
             val columns = listOf(id, name, surname, position, supervisor, subordinates)
+            val supervisorSubQuery = EmployeesTable.select(supervisor).where(id eq employeeId.value)
             EmployeesTable.select(columns).where(id eq employeeId.value)
                 .unionAll(
-                    EmployeesTable.select(columns).where(id eqSubQuery (EmployeesTable.select(supervisor).where(id eq employeeId.value))),
+                    EmployeesTable.select(columns).where(id eqSubQuery supervisorSubQuery),
                 )
                 .unionAll(
                     EmployeesTable.select(columns).where(supervisor eq employeeId.value),
                 ).union(
-                    EmployeesTable.select(columns).where(supervisor eqSubQuery (EmployeesTable.select(supervisor).where(id eq employeeId.value))),
+                    EmployeesTable.select(columns).where(supervisor eqSubQuery supervisorSubQuery),
                 ).map { row ->
                     OrgChartEmployee(
                         employeeId = EmployeeId(row[id]),

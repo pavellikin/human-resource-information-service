@@ -9,5 +9,5 @@ enum class Position(
     CPO(2),
     EngineeringManager(3),
     ProductManager(3),
-    SoftwareEngineer(999),
+    SoftwareEngineer(4),
 }

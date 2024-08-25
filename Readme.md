@@ -23,6 +23,7 @@ Assumptions that were made during implementation can be found in the code commen
 
 - Anti-corruption layer omitted for simplicity
 - Minimum test coverage is 60%
+- Ktlint ensures the same code style for all files
 
 ## Deployment strategy
 ![Deployment strategy](documents/Deployment%20strategy.png)

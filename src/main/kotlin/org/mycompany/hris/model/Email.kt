@@ -12,6 +12,8 @@ data class Email
         init {
             val minValue = 15
             val maxValue = 60
+            // This simple validation checks only the length of the email.
+            // Better to add regexp validation.
             if (value.length < minValue || value.length > maxValue) {
                 throw BadRequestException("Email size should be between $minValue and $maxValue symbols")
             }

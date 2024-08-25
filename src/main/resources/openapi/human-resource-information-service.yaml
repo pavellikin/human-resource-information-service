@@ -341,7 +341,6 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/EmployeeId"
-          example: [ 27a7d6e6-4270-41eb-862c-6be9a843a16a, 27a7d6e6-4270-41eb-862c-6be9a843a16a, 27a7d6e6-4270-41eb-862c-6be9a843a16a ]
 
     CreateEmployeeResponse:
       type: object
@@ -362,7 +361,6 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/EmployeeId"
-          example: [ 27a7d6e6-4270-41eb-862c-6be9a843a16a, 27a7d6e6-4270-41eb-862c-6be9a843a16a, 27a7d6e6-4270-41eb-862c-6be9a843a16a ]
 
     GetEmployeeResponse:
       type: object
@@ -389,7 +387,6 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/EmployeeId"
-          example: [ 27a7d6e6-4270-41eb-862c-6be9a843a16a, 27a7d6e6-4270-41eb-862c-6be9a843a16a, 27a7d6e6-4270-41eb-862c-6be9a843a16a ]
 
     OrganizationResponse:
       type: object
@@ -502,7 +499,7 @@ components:
       description: Employee id in uuid format
       type: string
       format: uuid
-      example: 27a7d6e6-4270-41eb-862c-6be9a843a16a
+      example: 00000000-0000-0000-0000-000000000002
 
     Name:
       type: string
@@ -527,6 +524,7 @@ components:
       description: Employee position in the organization
       type: string
       enum: [ CEO, CTO, CPO, SoftwareEngineer, EngineeringManager, ProductManager ]
+      example: SoftwareEngineer
 
     ErrorResponse:
       type: object

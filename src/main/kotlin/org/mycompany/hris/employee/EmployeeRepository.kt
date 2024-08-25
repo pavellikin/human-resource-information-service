@@ -45,7 +45,7 @@ class EmployeeRepository {
         request: PatchEmployeeRequest,
     ) = withContext(Dispatchers.IO) {
         with(EmployeesTable) {
-            update({ id inList employeeIds.map { it.value }}) { statement ->
+            update({ id inList employeeIds.map { it.value } }) { statement ->
                 request.position?.let { statement[position] = it.name }
                 request.supervisor?.let { statement[supervisor] = it.value }
                 request.subordinates?.let { statement[subordinates] = it.map { s -> s.value } }
