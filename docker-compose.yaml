@@ -10,6 +10,7 @@ services:
         condition: service_completed_successfully
     environment:
       - JDBC_URL=jdbc:postgresql://postgres:5432/human_resource_information
+      - POSTGRES_PASSWORD=postgres
   flyway:
     image: flyway/flyway:10.17.2
     volumes:

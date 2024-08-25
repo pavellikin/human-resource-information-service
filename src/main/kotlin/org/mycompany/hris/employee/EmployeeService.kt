@@ -87,7 +87,7 @@ class EmployeeService(
             if (position != null) {
                 val supervisor = supervisorList.first()
                 if (position.order < supervisor.position.order) {
-                    throw BadRequestException("Supervisor has a lover position (${supervisor.position}) then employee $position")
+                    throw BadRequestException("Supervisor has a lower position (${supervisor.position}) then employee $position")
                 }
             }
             if (setOf(it) == subordinates) {
