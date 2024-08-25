@@ -16,9 +16,9 @@ import org.mycompany.hris.configuration.tables.EmployeesTable.subordinates
 import org.mycompany.hris.configuration.tables.EmployeesTable.supervisor
 import org.mycompany.hris.configuration.tables.EmployeesTable.surname
 import org.mycompany.hris.employee.model.CreateEmployeeRequest
-import org.mycompany.hris.employee.model.GetEmployeeResponse
 import org.mycompany.hris.employee.model.PatchEmployeeRequest
 import org.mycompany.hris.model.Email
+import org.mycompany.hris.model.Employee
 import org.mycompany.hris.model.EmployeeId
 import org.mycompany.hris.model.Name
 import org.mycompany.hris.model.Position
@@ -57,7 +57,7 @@ class EmployeeRepository {
         withContext(Dispatchers.IO) {
             EmployeesTable.selectAll().where(EmployeesTable.id eq employeeId.value)
                 .map { statement ->
-                    GetEmployeeResponse(
+                    Employee(
                         employeeId = employeeId,
                         name = Name(statement[name]),
                         surname = Surname(statement[surname]),

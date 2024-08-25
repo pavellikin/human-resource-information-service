@@ -40,7 +40,19 @@ class EmployeeService(
         if (employee.isEmpty()) {
             throw NotFoundException("Employee $employeeId not found")
         }
-        return employee.first()
+        return employee
+            .map {
+                GetEmployeeResponse(
+                    employeeId = it.employeeId,
+                    name = it.name,
+                    surname = it.surname,
+                    email = it.email,
+                    position = it.position,
+                    supervisor = it.supervisor,
+                    numberOfSubordinates = it.numberOfSubordinates,
+                )
+            }
+            .first()
     }
 
     suspend fun deleteEmployee(employeeId: EmployeeId) =

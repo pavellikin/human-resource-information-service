@@ -164,7 +164,7 @@ class EmployeeServiceTest : AbstractE2eTest() {
                 assertEquals(createEmployeeRequest.surname, it.surname)
                 assertEquals(createEmployeeRequest.position, it.position)
                 assertEquals(createEmployeeRequest.supervisor, it.supervisor)
-                assertContentEquals(createEmployeeRequest.subordinates, it.subordinates)
+                assertEquals(createEmployeeRequest.subordinates?.size, it.numberOfSubordinates)
             }
         }
 

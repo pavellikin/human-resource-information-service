@@ -13,5 +13,5 @@ data class GetEmployeeResponse(
     val email: Email,
     val position: Position,
     val supervisor: EmployeeId? = null,
-    val subordinates: List<EmployeeId>? = null,
+    val numberOfSubordinates: Int,
 )

@@ -383,10 +383,8 @@ components:
           $ref: "#/components/schemas/Position"
         supervisor:
           $ref: "#/components/schemas/EmployeeId"
-        subordinates:
-          type: array
-          items:
-            $ref: "#/components/schemas/EmployeeId"
+        numberOfSubordinates:
+          type: integer
 
     OrganizationResponse:
       type: object
