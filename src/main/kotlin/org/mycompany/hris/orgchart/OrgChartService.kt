@@ -52,7 +52,7 @@ class OrgChartService(
         var supervisor = employee.supervisor
         while (supervisor != null && counter < step) {
             subChart[supervisor]?.let { e ->
-                supervisor?.let { s -> orgChartRepository.getWithColleagues(s).onEach { subChart[it.employeeId] = it } }
+                orgChartRepository.getTopEmployees(supervisor).onEach { subChart[it.employeeId] = it }
                 supervisor = e.supervisor
             }
             counter++
