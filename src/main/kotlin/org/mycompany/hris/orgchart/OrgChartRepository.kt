@@ -40,23 +40,24 @@ class OrgChartRepository {
             }
         }
 
-    suspend fun getTopEmployees(employeeId: EmployeeId) = withContext(Dispatchers.IO) {
-        val columns = listOf(id, name, surname, position, supervisor, subordinates)
-        val supervisorSubQuery = EmployeesTable.select(supervisor).where(id eq employeeId.value)
-        EmployeesTable.select(columns).where(id eqSubQuery supervisorSubQuery)
-            .union(
-                EmployeesTable.select(columns).where(supervisor eqSubQuery supervisorSubQuery),
-            ).map { row ->
-                OrgChartEmployee(
-                    employeeId = EmployeeId(row[id]),
-                    name = Name(row[name]),
-                    surname = Surname(row[surname]),
-                    position = Position.valueOf(row[position]),
-                    supervisor = row[supervisor]?.let { EmployeeId(it) },
-                    subordinates = row[subordinates]?.let { s -> s.map { EmployeeId(it) } },
-                )
-            }
-    }
+    suspend fun getTopEmployees(employeeId: EmployeeId) =
+        withContext(Dispatchers.IO) {
+            val columns = listOf(id, name, surname, position, supervisor, subordinates)
+            val supervisorSubQuery = EmployeesTable.select(supervisor).where(id eq employeeId.value)
+            EmployeesTable.select(columns).where(id eqSubQuery supervisorSubQuery)
+                .union(
+                    EmployeesTable.select(columns).where(supervisor eqSubQuery supervisorSubQuery),
+                ).map { row ->
+                    OrgChartEmployee(
+                        employeeId = EmployeeId(row[id]),
+                        name = Name(row[name]),
+                        surname = Surname(row[surname]),
+                        position = Position.valueOf(row[position]),
+                        supervisor = row[supervisor]?.let { EmployeeId(it) },
+                        subordinates = row[subordinates]?.let { s -> s.map { EmployeeId(it) } },
+                    )
+                }
+        }
 
     suspend fun getWithColleagues(employeeId: EmployeeId) =
         withContext(Dispatchers.IO) {
