@@ -6,6 +6,7 @@ import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eqSubQuery
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
+import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.union
 import org.jetbrains.exposed.sql.unionAll
 import org.mycompany.hris.configuration.tables.EmployeesTable
@@ -45,8 +46,8 @@ class OrgChartRepository {
             val columns = listOf(id, name, surname, position, supervisor, subordinates)
             val supervisorSubQuery = EmployeesTable.select(supervisor).where(id eq employeeId.value)
             EmployeesTable.select(columns).where(id eqSubQuery supervisorSubQuery)
-                .union(
-                    EmployeesTable.select(columns).where(supervisor eqSubQuery supervisorSubQuery),
+                .unionAll(
+                    EmployeesTable.select(columns).where { (supervisor eqSubQuery supervisorSubQuery) and (id neq employeeId.value) },
                 ).map { row ->
                     OrgChartEmployee(
                         employeeId = EmployeeId(row[id]),
