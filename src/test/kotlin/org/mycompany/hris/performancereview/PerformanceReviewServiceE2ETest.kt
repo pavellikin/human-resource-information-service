@@ -29,7 +29,7 @@ import org.mycompany.hris.performancereview.model.SubmitPerformanceReviewRequest
 import java.time.LocalDate
 import kotlin.test.assertEquals
 
-class PerformanceReviewServiceTest : AbstractE2eTest() {
+class PerformanceReviewServiceE2ETest : AbstractE2eTest() {
     @Test
     fun `create review`() =
         e2eTest {

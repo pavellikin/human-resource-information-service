@@ -7,16 +7,19 @@ import org.mycompany.hris.employee.model.PatchEmployeeRequest
 import org.mycompany.hris.exception.BadRequestException
 import org.mycompany.hris.exception.NotFoundException
 import org.mycompany.hris.model.EmployeeId
-import org.mycompany.hris.model.Position
 import org.mycompany.hris.utils.inTx
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.util.UUID
 
 class EmployeeService(
     private val employeeRepository: EmployeeRepository,
 ) {
+    private val logger: Logger = LoggerFactory.getLogger(this::class.java)
+
     suspend fun createEmployee(request: CreateEmployeeRequest): CreateEmployeeResponse =
         inTx {
-            checkEmployeeData(request.position, request.supervisor, request.subordinates)
+            checkCreateEmployeeData(request)
             val employeeId = EmployeeId(UUID.randomUUID())
             employeeRepository.createEmployee(employeeId, request)
             CreateEmployeeResponse(employeeId)
@@ -30,7 +33,7 @@ class EmployeeService(
             return
         }
         inTx {
-            checkEmployeeData(request.position, request.supervisor, request.subordinates)
+            checkUpdateEmployeeData(employeeId, request)
             employeeRepository.updateEmployees(listOf(employeeId), request)
         }
     }
@@ -58,7 +61,7 @@ class EmployeeService(
     suspend fun deleteEmployee(employeeId: EmployeeId) =
         inTx {
             val (supervisorId, subordinates) = employeeRepository.deleteEmployeeById(employeeId)
-            val currentSubordinates = subordinates ?: emptyList()
+            val currentSubordinates = subordinates.orEmpty()
             if (supervisorId != null) {
                 val supervisor = employeeRepository.getEmployeeById(supervisorId)
                 if (supervisor.isEmpty()) {
@@ -69,32 +72,72 @@ class EmployeeService(
                     employeeRepository.updateEmployees(listOf(supervisorId), PatchEmployeeRequest(subordinates = newSubordinates))
                 }
             }
-            employeeRepository.updateEmployees(currentSubordinates, PatchEmployeeRequest(supervisor = supervisorId))
+            if (currentSubordinates.isNotEmpty()) {
+                employeeRepository.updateEmployees(currentSubordinates, PatchEmployeeRequest(supervisor = supervisorId))
+            }
         }
 
     internal suspend fun isEmployeeExist(employeeId: EmployeeId) = employeeRepository.isEmployeeExist(employeeId)
 
-    private suspend fun checkEmployeeData(
-        position: Position?,
-        supervisorId: EmployeeId?,
-        subordinates: Collection<EmployeeId>?,
-    ) {
-        supervisorId?.let {
+    private suspend fun checkCreateEmployeeData(request: CreateEmployeeRequest) {
+        val supervisor = request.supervisor
+        val subordinates = request.subordinates.orEmpty()
+        supervisor?.let {
             val supervisorList = employeeRepository.getEmployeeById(it)
             if (supervisorList.isEmpty()) {
-                throw BadRequestException("Employee (supervisor) with id $supervisorId doesn't exist")
+                throw BadRequestException("Employee (supervisor) with id $supervisor doesn't exist")
             }
-            if (position != null) {
+            val position = request.position
+            val supervisor = supervisorList.first()
+            if (position.order < supervisor.position.order) {
+                throw BadRequestException("Supervisor has a lower position (${supervisor.position}) then employee $position")
+            }
+            if (subordinates.contains(it)) {
+                throw BadRequestException("Supervisor can't be one of subordinates")
+            }
+        }
+        subordinates.forEach {
+            if (!employeeRepository.isEmployeeExist(it)) {
+                throw BadRequestException("Employee (subordinate) with id $it doesn't exist")
+            }
+        }
+    }
+
+    private suspend fun checkUpdateEmployeeData(
+        employeeId: EmployeeId,
+        request: PatchEmployeeRequest,
+    ) {
+        val employeeList = employeeRepository.getEmployeeById(employeeId)
+        if (employeeList.isEmpty()) {
+            throw BadRequestException("Employee with id $employeeId doesn't exist")
+        }
+        val subordinates = request.subordinates.orEmpty()
+        request.supervisor?.let {
+            if (!employeeRepository.isEmployeeExist(it)) {
+                throw BadRequestException("Employee (supervisor) with id $it doesn't exist")
+            }
+            if (subordinates.contains(it)) {
+                throw BadRequestException("Supervisor can't be one of subordinates")
+            }
+        }
+        request.position?.let { position ->
+            if (request.supervisor == null) {
+                employeeList.first().supervisor
+            } else {
+                request.supervisor
+            }?.let { supervisorId ->
+                val supervisorList = employeeRepository.getEmployeeById(supervisorId)
+                if (supervisorList.isEmpty()) {
+                    logger.warn("Employee (supervisor) with id $supervisorId doesn't exist. Skip supervisor check")
+                    return@let
+                }
                 val supervisor = supervisorList.first()
                 if (position.order < supervisor.position.order) {
                     throw BadRequestException("Supervisor has a lower position (${supervisor.position}) then employee $position")
                 }
             }
-            if (setOf(it) == subordinates) {
-                throw BadRequestException("Supervisor can't be one of subordinates")
-            }
         }
-        subordinates?.forEach {
+        subordinates.forEach {
             if (!employeeRepository.isEmployeeExist(it)) {
                 throw BadRequestException("Employee (subordinate) with id $it doesn't exist")
             }
