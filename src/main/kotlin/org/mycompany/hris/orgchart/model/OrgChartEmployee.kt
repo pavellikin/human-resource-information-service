@@ -14,5 +14,4 @@ data class OrgChartEmployee(
     val surname: Surname,
     val position: Position,
     val supervisor: EmployeeId? = null,
-    val subordinates: List<EmployeeId>? = null,
 )

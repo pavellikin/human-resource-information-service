@@ -22,6 +22,7 @@ class EmployeeService(
             checkCreateEmployeeData(request)
             val employeeId = EmployeeId(UUID.randomUUID())
             employeeRepository.createEmployee(employeeId, request)
+            request.subordinates?.let { employeeRepository.updateSupervisor(employeeId, it) }
             CreateEmployeeResponse(employeeId)
         }
 
@@ -35,6 +36,7 @@ class EmployeeService(
         inTx {
             checkUpdateEmployeeData(employeeId, request)
             employeeRepository.updateEmployees(listOf(employeeId), request)
+            request.subordinates?.let { employeeRepository.updateSupervisor(employeeId, it) }
         }
     }
 
@@ -60,21 +62,8 @@ class EmployeeService(
 
     suspend fun deleteEmployee(employeeId: EmployeeId) =
         inTx {
-            val (supervisorId, subordinates) = employeeRepository.deleteEmployeeById(employeeId)
-            val currentSubordinates = subordinates.orEmpty()
-            if (supervisorId != null) {
-                val supervisor = employeeRepository.getEmployeeById(supervisorId)
-                if (supervisor.isEmpty()) {
-                    return@inTx
-                }
-                val newSubordinates = ((supervisor.first().subordinates ?: emptyList()) + currentSubordinates).toSet()
-                if (newSubordinates.isNotEmpty()) {
-                    employeeRepository.updateEmployees(listOf(supervisorId), PatchEmployeeRequest(subordinates = newSubordinates))
-                }
-            }
-            if (currentSubordinates.isNotEmpty()) {
-                employeeRepository.updateEmployees(currentSubordinates, PatchEmployeeRequest(supervisor = supervisorId))
-            }
+            val supervisorId = employeeRepository.deleteEmployeeById(employeeId)
+            employeeRepository.updateSupervisor(employeeId, supervisorId)
         }
 
     internal suspend fun isEmployeeExist(employeeId: EmployeeId) = employeeRepository.isEmployeeExist(employeeId)

@@ -37,7 +37,7 @@ Postgres was chosen as a service DB for several reasons:
    For the `/performance-reviews` endpoints the number of write and read requests would be almost the same (assumption - employee creates a review and updates it up to two times, employee reads review at least 2 times).
    Relational DB should handle read-heavy requests well.
 2. Even for large organizations of 2 million employees the amount of data looks manageable for relational DB:
-- with the assumption that the median row in the `employees` table is about 200 bytes the table will be around 400 Mb
+- with the assumption that the median row in the `employees` table is about 100 bytes the table will be around 200 Mb
 - with the assumption that the median row in the `performance_reviews` table is about 550 rows the table will grow on 1 Gb per review cycle
 
 The table structure looks the following:

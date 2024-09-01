@@ -169,7 +169,6 @@ class PerformanceReviewServiceE2ETest : AbstractE2eTest() {
                 statement[email] = givenEmail().value
                 statement[position] = givenPosition().name
                 statement[supervisor] = givenEmployeeId().value
-                statement[subordinates] = listOf(givenEmployeeId().value)
             }
         }
 }

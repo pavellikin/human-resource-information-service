@@ -3,7 +3,6 @@ package org.mycompany.hris.configuration.tables
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.javatime.timestamp
 import java.time.Instant
-import java.util.UUID
 
 object EmployeesTable : Table() {
     val id = uuid("id")
@@ -16,7 +15,6 @@ object EmployeesTable : Table() {
     // For simplicity, I will omit this table and will store positions names normalized by the service itself.
     val position = varchar("position", 50)
     val supervisor = uuid("supervisor").index("employees_supervisor_idx").nullable()
-    val subordinates = array<UUID>("subordinates").nullable()
     val createdAt = timestamp("created_at").default(Instant.now())
 
     override val primaryKey: PrimaryKey = PrimaryKey(id)

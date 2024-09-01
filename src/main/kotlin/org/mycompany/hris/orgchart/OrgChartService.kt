@@ -11,9 +11,9 @@ class OrgChartService(
 ) {
     // Heavy operation.
     // Let's assume the median name length is 10 symbols and median surname length is 20. Every employee has 1 supervisor and 5 subordinates.
-    // The row size without email will be 16 + 10 + 20 + 40 + 16 + (16 * 5) = 182 bytes. Let's use 200 bytes for simplicity.
-    // For a medium size organization of ~1000 employees the amount of data to extract will be 200 * 1000 = 200 Kb.
-    // For a large organization of 2 million employees (Walmart) the data to extract will be ~400 Mb.
+    // The row size without email will be 16 + 10 + 20 + 40 + 16 = ~100 bytes.
+    // For a medium size organization of ~1000 employees the amount of data to extract will be 100 * 1000 = 100 Kb.
+    // For a large organization of 2 million employees (Walmart) the data to extract will be ~200 Mb.
     // large big organizations it makes sense to add a distributed cache.
     suspend fun getAllOrgChart(): Map<EmployeeId, OrgChartEmployee> {
         return inTx { orgChartRepository.getAllEmployees() }
@@ -65,10 +65,10 @@ class OrgChartService(
         step: Int,
     ) {
         var counter = 0
-        var subordinates = employee.subordinates
-        while (!subordinates.isNullOrEmpty() && counter < step) {
-            val oces = orgChartRepository.getEmployees(subordinates).onEach { subChart[it.employeeId] = it }
-            subordinates = oces.flatMap { it.subordinates.orEmpty() }
+        var supervisors = listOf(employee.employeeId)
+        while (supervisors.isNotEmpty() && counter < step) {
+            val oces = orgChartRepository.getBelowEmployees(supervisors).onEach { subChart[it.employeeId] = it }
+            supervisors = oces.map { it.employeeId }
             counter++
         }
     }
