@@ -46,12 +46,11 @@ The table structure looks the following:
 |        employees            |
 +----------------------------+
 | id (uuid)                  | <--- Primary Key
-| name (varchar(60))         |
-| surname (varchar(60))      |
-| email (varchar(130))       |
+| name (varchar(50))         |
+| surname (varchar(50))      |
+| email (varchar(60))        |
 | position (varchar(50))     |
 | supervisor (uuid)          |
-| subordinates (uuid[])      |
 | created_at (timestamp)     |
 +----------------------------+
 

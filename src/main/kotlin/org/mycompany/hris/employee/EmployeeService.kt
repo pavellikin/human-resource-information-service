@@ -122,7 +122,7 @@ class EmployeeService(
                 }
                 val supervisor = supervisorList.first()
                 if (position.order < supervisor.position.order) {
-                    throw BadRequestException("Supervisor has a lower position (${supervisor.position}) then employee $position")
+                    throw BadRequestException("Employee (supervisor) has a lower position (${supervisor.position}) then employee $position")
                 }
             }
         }
