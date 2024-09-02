@@ -52,7 +52,7 @@ abstract class AbstractE2eTest {
             withTimeout(10_000) {
                 val cl = this.javaClass.classLoader
                 val testConfig =
-                    ApplicationConfig(cl.getResource("application.conf").file)
+                    ApplicationConfig(cl.getResource("application.conf")!!.file)
                         .mergeWith(
                             MapApplicationConfig(
                                 "datasource.url" to postgresContainer.getJdbcUrl(),

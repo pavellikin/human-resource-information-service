@@ -13,8 +13,6 @@ import org.mycompany.hris.configuration.tables.EmployeesTable
 import org.mycompany.hris.configuration.tables.EmployeesTable.id
 import org.mycompany.hris.configuration.tables.EmployeesTable.name
 import org.mycompany.hris.configuration.tables.EmployeesTable.position
-import org.mycompany.hris.configuration.tables.EmployeesTable.select
-import org.mycompany.hris.configuration.tables.EmployeesTable.subordinates
 import org.mycompany.hris.configuration.tables.EmployeesTable.supervisor
 import org.mycompany.hris.configuration.tables.EmployeesTable.surname
 import org.mycompany.hris.model.EmployeeId
@@ -27,42 +25,33 @@ class OrgChartRepository {
     suspend fun getAllEmployees() =
         withContext(Dispatchers.IO) {
             with(EmployeesTable) {
-                select(id, name, surname, position, supervisor, subordinates)
+                select(id, name, surname, position, supervisor)
                     .map { it.toEmployee() }
             }
         }
 
-    suspend fun getEmployees(employeeIds: List<EmployeeId>) =
+    suspend fun getBelowEmployees(supervisors: List<EmployeeId>) =
         withContext(Dispatchers.IO) {
             with(EmployeesTable) {
-                select(id, name, surname, position, supervisor, subordinates)
-                    .where(id inList employeeIds.map { it.value })
+                select(id, name, surname, position, supervisor)
+                    .where(supervisor inList supervisors.map { it.value })
                     .map { it.toEmployee() }
             }
         }
 
     suspend fun getTopEmployees(employeeId: EmployeeId) =
         withContext(Dispatchers.IO) {
-            val columns = listOf(id, name, surname, position, supervisor, subordinates)
+            val columns = listOf(id, name, surname, position, supervisor)
             val supervisorSubQuery = EmployeesTable.select(supervisor).where(id eq employeeId.value)
             EmployeesTable.select(columns).where(id eqSubQuery supervisorSubQuery)
                 .unionAll(
                     EmployeesTable.select(columns).where { (supervisor eqSubQuery supervisorSubQuery) and (id neq employeeId.value) },
-                ).map { row ->
-                    OrgChartEmployee(
-                        employeeId = EmployeeId(row[id]),
-                        name = Name(row[name]),
-                        surname = Surname(row[surname]),
-                        position = Position.valueOf(row[position]),
-                        supervisor = row[supervisor]?.let { EmployeeId(it) },
-                        subordinates = row[subordinates]?.let { s -> s.map { EmployeeId(it) } },
-                    )
-                }
+                ).map { it.toEmployee() }
         }
 
     suspend fun getWithColleagues(employeeId: EmployeeId) =
         withContext(Dispatchers.IO) {
-            val columns = listOf(id, name, surname, position, supervisor, subordinates)
+            val columns = listOf(id, name, surname, position, supervisor)
             val supervisorSubQuery = EmployeesTable.select(supervisor).where(id eq employeeId.value)
             EmployeesTable.select(columns).where(id eq employeeId.value)
                 .unionAll(
@@ -72,16 +61,7 @@ class OrgChartRepository {
                     EmployeesTable.select(columns).where(supervisor eq employeeId.value),
                 ).union(
                     EmployeesTable.select(columns).where(supervisor eqSubQuery supervisorSubQuery),
-                ).map { row ->
-                    OrgChartEmployee(
-                        employeeId = EmployeeId(row[id]),
-                        name = Name(row[name]),
-                        surname = Surname(row[surname]),
-                        position = Position.valueOf(row[position]),
-                        supervisor = row[supervisor]?.let { EmployeeId(it) },
-                        subordinates = row[subordinates]?.let { s -> s.map { EmployeeId(it) } },
-                    )
-                }
+                ).map { it.toEmployee() }
         }
 
     private fun ResultRow.toEmployee() =
@@ -91,6 +71,5 @@ class OrgChartRepository {
             surname = Surname(this[surname]),
             position = Position.valueOf(this[position]),
             supervisor = this[supervisor]?.let { EmployeeId(it) },
-            subordinates = this[subordinates]?.let { s -> s.map { EmployeeId(it) } },
         )
 }

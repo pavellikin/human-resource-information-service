@@ -18,7 +18,7 @@ import kotlin.test.assertNotNull
 // All tests are based on the V2__add_employees.sql migration script
 class OrgChartServiceE2ETest : AbstractE2eTest() {
     companion object {
-        val sql = this.javaClass.classLoader.getResource("db/migrations/V2__add_employees.sql").readText()
+        val sql = this.javaClass.classLoader.getResource("db/migrations/V2__add_employees.sql")!!.readText()
     }
 
     @Test

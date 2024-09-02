@@ -29,7 +29,6 @@ import org.mycompany.hris.givenSurname
 import org.mycompany.hris.model.EmployeeId
 import org.mycompany.hris.model.Position
 import java.util.UUID
-import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -62,7 +61,6 @@ class EmployeeServiceE2ETest : AbstractE2eTest() {
                         assertEquals(request.email.value, dbEmployees.first()[email])
                         assertEquals(request.position.name, dbEmployees.first()[position])
                         assertEquals(request.supervisor!!.value, dbEmployees.first()[supervisor])
-                        assertContentEquals(request.subordinates, dbEmployees.first()[subordinates]!!.map { EmployeeId(it) })
                     }
                 }
             }
@@ -92,7 +90,6 @@ class EmployeeServiceE2ETest : AbstractE2eTest() {
                         assertEquals(request.email.value, dbEmployees.first()[email])
                         assertEquals(request.position.name, dbEmployees.first()[position])
                         assertNull(dbEmployees.first()[supervisor])
-                        assertNull(dbEmployees.first()[subordinates])
                     }
                 }
             }
@@ -127,12 +124,8 @@ class EmployeeServiceE2ETest : AbstractE2eTest() {
                         assertEquals(1, dbEmployees.size)
                         assertEquals(employeeId, dbEmployees.first()[id])
                         assertEquals(newPosition.name, dbEmployees.first()[position])
-                        // supervisor and subordinates stay the same
+                        // supervisor stay the same
                         assertEquals(createEmployeeRequest.supervisor!!.value, dbEmployees.first()[supervisor])
-                        assertContentEquals(
-                            createEmployeeRequest.subordinates!!,
-                            dbEmployees.first()[subordinates]!!.map { EmployeeId(it) },
-                        )
                     }
                 }
             }
@@ -211,10 +204,6 @@ class EmployeeServiceE2ETest : AbstractE2eTest() {
                     selectAll().where(id inList subordinates)
                         .map { it[EmployeesTable.supervisor] }
                         .onEach { assertEquals(it, supervisor.value) }
-                    selectAll().where(id eq supervisor.value)
-                        .map { it[EmployeesTable.subordinates] }
-                        .first()
-                        .also { assertContentEquals(subordinates, it) }
                 }
             }
         }

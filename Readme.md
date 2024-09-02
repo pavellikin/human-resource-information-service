@@ -37,7 +37,7 @@ Postgres was chosen as a service DB for several reasons:
    For the `/performance-reviews` endpoints the number of write and read requests would be almost the same (assumption - employee creates a review and updates it up to two times, employee reads review at least 2 times).
    Relational DB should handle read-heavy requests well.
 2. Even for large organizations of 2 million employees the amount of data looks manageable for relational DB:
-- with the assumption that the median row in the `employees` table is about 200 bytes the table will be around 400 Mb
+- with the assumption that the median row in the `employees` table is about 100 bytes the table will be around 200 Mb
 - with the assumption that the median row in the `performance_reviews` table is about 550 rows the table will grow on 1 Gb per review cycle
 
 The table structure looks the following:
@@ -46,12 +46,11 @@ The table structure looks the following:
 |        employees            |
 +----------------------------+
 | id (uuid)                  | <--- Primary Key
-| name (varchar(60))         |
-| surname (varchar(60))      |
-| email (varchar(130))       |
+| name (varchar(50))         |
+| surname (varchar(50))      |
+| email (varchar(60))        |
 | position (varchar(50))     |
 | supervisor (uuid)          |
-| subordinates (uuid[])      |
 | created_at (timestamp)     |
 +----------------------------+
 
@@ -124,42 +123,43 @@ FROM generate_series(1, 2000000) AS gs(id);
 ```
 the query plan to extract an employee looks good (Buffers: shared hit=23, Execution Time: 0.161 ms):
 ```sql
-select * from employees where id = '00000000-0000-0000-0000-000000000010'
+explain(analyze, buffers)
+select * from employees where id = '00000000-0000-0000-0000-000000000002'
 union all
-select * from employees as above where above.id = (select supervisor from employees current where current.id = '00000000-0000-0000-0000-000000000010')
+select * from employees as above where above.id = (select supervisor from employees current where current.id = '00000000-0000-0000-0000-000000000002')
 union all
-select * from employees as below where below.supervisor = '00000000-0000-0000-0000-000000000010'
+select * from employees as below where below.supervisor = '00000000-0000-0000-0000-000000000002'
 union
-select * from employees as linear where linear.supervisor = (select supervisor from employees current where current.id = '00000000-0000-0000-0000-000000000010')
+select * from employees as linear where linear.supervisor = (select supervisor from employees current where current.id = '00000000-0000-0000-0000-000000000002')
 
-HashAggregate  (cost=50.77..50.81 rows=4 width=744) (actual time=0.088..0.092 rows=3 loops=1)
-  Group Key: employees.id, employees.name, employees.surname, employees.email, employees."position", employees.supervisor, employees.subordinates, employees.created_at
-  Batches: 1  Memory Usage: 32kB
-  Buffers: shared hit=23
-  ->  Append  (cost=0.43..50.69 rows=4 width=744) (actual time=0.028..0.068 rows=4 loops=1)
-        Buffers: shared hit=23
-        ->  Index Scan using employees_pkey on employees  (cost=0.43..8.45 rows=1 width=146) (actual time=0.027..0.029 rows=1 loops=1)
-              Index Cond: (id = '00000000-0000-0000-0000-000000000010'::uuid)
-              Buffers: shared hit=4
-        ->  Index Scan using employees_pkey on employees above  (cost=8.87..16.89 rows=1 width=146) (actual time=0.013..0.014 rows=1 loops=1)
+HashAggregate  (cost=49.06..49.10 rows=4 width=532) (actual time=0.098..0.105 rows=7 loops=1)
+  Group Key: employees.id, employees.name, employees.surname, employees.email, employees."position", employees.supervisor, employees.created_at
+  Batches: 1  Memory Usage: 24kB
+  Buffers: shared hit=12
+  ->  Append  (cost=0.14..48.99 rows=4 width=532) (actual time=0.028..0.066 rows=8 loops=1)
+        Buffers: shared hit=12
+        ->  Index Scan using employees_pkey on employees  (cost=0.14..8.16 rows=1 width=532) (actual time=0.027..0.029 rows=1 loops=1)
+              Index Cond: (id = '00000000-0000-0000-0000-000000000002'::uuid)
+              Buffers: shared hit=2
+        ->  Index Scan using employees_pkey on employees above  (cost=8.31..16.32 rows=1 width=532) (actual time=0.012..0.013 rows=1 loops=1)
               Index Cond: (id = $0)
-              Buffers: shared hit=8
+              Buffers: shared hit=4
               InitPlan 1 (returns $0)
-                ->  Index Scan using employees_pkey on employees current  (cost=0.43..8.45 rows=1 width=16) (actual time=0.005..0.006 rows=1 loops=1)
-                      Index Cond: (id = '00000000-0000-0000-0000-000000000010'::uuid)
-                      Buffers: shared hit=4
-        ->  Index Scan using employees_supervisor_idx on employees below  (cost=0.43..8.45 rows=1 width=146) (actual time=0.012..0.012 rows=0 loops=1)
-              Index Cond: (supervisor = '00000000-0000-0000-0000-000000000010'::uuid)
-              Buffers: shared hit=3
-        ->  Index Scan using employees_supervisor_idx on employees linear  (cost=8.87..16.89 rows=1 width=146) (actual time=0.010..0.011 rows=2 loops=1)
+                ->  Index Scan using employees_pkey on employees current  (cost=0.14..8.16 rows=1 width=16) (actual time=0.005..0.005 rows=1 loops=1)
+                      Index Cond: (id = '00000000-0000-0000-0000-000000000002'::uuid)
+                      Buffers: shared hit=2
+        ->  Index Scan using employees_supervisor_idx on employees below  (cost=0.14..8.16 rows=1 width=532) (actual time=0.005..0.008 rows=4 loops=1)
+              Index Cond: (supervisor = '00000000-0000-0000-0000-000000000002'::uuid)
+              Buffers: shared hit=2
+        ->  Index Scan using employees_supervisor_idx on employees linear  (cost=8.31..16.32 rows=1 width=532) (actual time=0.009..0.010 rows=2 loops=1)
               Index Cond: (supervisor = $1)
-              Buffers: shared hit=8
+              Buffers: shared hit=4
               InitPlan 2 (returns $1)
-                ->  Index Scan using employees_pkey on employees current_1  (cost=0.43..8.45 rows=1 width=16) (actual time=0.005..0.005 rows=1 loops=1)
-                      Index Cond: (id = '00000000-0000-0000-0000-000000000010'::uuid)
-                      Buffers: shared hit=4
-Planning Time: 0.286 ms
-Execution Time: 0.161 ms
+                ->  Index Scan using employees_pkey on employees current_1  (cost=0.14..8.16 rows=1 width=16) (actual time=0.004..0.005 rows=1 loops=1)
+                      Index Cond: (id = '00000000-0000-0000-0000-000000000002'::uuid)
+                      Buffers: shared hit=2
+Planning Time: 0.354 ms
+Execution Time: 0.193 ms
 ```
 
 ## Performance reviews

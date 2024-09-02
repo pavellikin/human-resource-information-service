@@ -272,7 +272,7 @@ class EmployeeServiceTest {
         @Test
         fun `delete placeholder employee`() =
             runBlocking {
-                coEvery { employeeRepository.deleteEmployeeById(EMPLOYEE_ID) } returns Pair(null, null)
+                coEvery { employeeRepository.deleteEmployeeById(EMPLOYEE_ID) } returns null
 
                 employeeService.deleteEmployee(EMPLOYEE_ID)
 
@@ -286,17 +286,12 @@ class EmployeeServiceTest {
         fun `delete engineering manager`() =
             runBlocking {
                 val supervisor = givenEmployeeId()
-                val subordinates = listOf(givenEmployeeId())
-                coEvery { employeeRepository.getEmployeeById(supervisor) } returns listOf(givenEmployee(supervisor))
-                coEvery { employeeRepository.deleteEmployeeById(EMPLOYEE_ID) } returns Pair(supervisor, subordinates)
+                coEvery { employeeRepository.deleteEmployeeById(EMPLOYEE_ID) } returns supervisor
 
                 employeeService.deleteEmployee(EMPLOYEE_ID)
 
                 coVerify(exactly = 1) {
-                    employeeRepository.getEmployeeById(any())
-                }
-                coVerify(exactly = 2) {
-                    employeeRepository.updateEmployees(any(), any())
+                    employeeRepository.updateSupervisor(EMPLOYEE_ID, supervisor)
                 }
             }
     }
@@ -311,7 +306,7 @@ class EmployeeServiceTest {
         givenEmail(),
         position,
         givenEmployeeId(),
-        emptyList(),
+        0,
     )
 
     private fun givenCreateEmployeeRequest(

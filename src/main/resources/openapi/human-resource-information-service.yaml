@@ -371,6 +371,7 @@ components:
         - surname
         - email
         - position
+        - numberOfSubordinates
       properties:
         employeeId:
           $ref: "#/components/schemas/EmployeeId"
@@ -409,10 +410,8 @@ components:
           $ref: "#/components/schemas/Surname"
         position:
           $ref: "#/components/schemas/Position"
-        subordinates:
-          type: array
-          items:
-            $ref: '#/components/schemas/Employee'
+        supervisor:
+          $ref: "#/components/schemas/EmployeeId"
 
     SubmitPerformanceReviewRequest:
       type: object

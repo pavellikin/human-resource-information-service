@@ -7,6 +7,5 @@ data class Employee(
     val email: Email,
     val position: Position,
     val supervisor: EmployeeId? = null,
-    val subordinates: List<EmployeeId>? = null,
-    val numberOfSubordinates: Int = subordinates?.size ?: 0,
+    val numberOfSubordinates: Int,
 )
